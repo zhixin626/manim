@@ -66,6 +66,7 @@ class OpeningManimExample(Scene):
             run_time=6,
         )
         self.wait(2)
+        # 
 
 
 class AnimatingMethods(Scene):

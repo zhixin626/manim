@@ -90,7 +90,7 @@ class Transform(Animation):
         super().clean_up_from_scene(scene)
         if self.replace_mobject_with_target_in_scene:
             scene.remove(self.mobject)
-            scene.add(self.target_mobject)
+            scene.add(self.target_mobject)   # problem
 
     def update_config(self, **kwargs) -> None:
         Animation.update_config(self, **kwargs)

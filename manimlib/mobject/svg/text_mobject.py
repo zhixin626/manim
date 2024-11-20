@@ -77,30 +77,35 @@ def markup_to_svg(
 
     # Write the result to a temporary svg file, and return it's contents.
     # TODO, better would be to have this not write to file at all
-    with tempfile.NamedTemporaryFile(suffix='.svg', mode='r+') as tmp:
-        manimpango.MarkupUtils.text2svg(
-            text=markup_str,
-            font="",                     # Already handled
-            slant="NORMAL",              # Already handled
-            weight="NORMAL",             # Already handled
-            size=1,                      # Already handled
-            _=0,                         # Empty parameter
-            disable_liga=False,
-            file_name=tmp.name,
-            START_X=0,
-            START_Y=0,
-            width=DEFAULT_CANVAS_WIDTH,
-            height=DEFAULT_CANVAS_HEIGHT,
-            justify=justify,
-            indent=indent,
-            line_spacing=None,           # Already handled
-            alignment=alignment,
-            pango_width=pango_width
-        )
+    try:
+        with tempfile.NamedTemporaryFile(suffix='.svg', mode='r+',delete=False) as tmp:
+            tmp_path=tmp.name
+            manimpango.MarkupUtils.text2svg(
+                text=markup_str,
+                font="",                     # Already handled
+                slant="NORMAL",              # Already handled
+                weight="NORMAL",             # Already handled
+                size=1,                      # Already handled
+                _=0,                         # Empty parameter
+                disable_liga=False,
+                file_name=tmp.name,
+                START_X=0,
+                START_Y=0,
+                width=DEFAULT_CANVAS_WIDTH,
+                height=DEFAULT_CANVAS_HEIGHT,
+                justify=justify,
+                indent=indent,
+                line_spacing=None,           # Already handled
+                alignment=alignment,
+                pango_width=pango_width
+            )
 
-        # Read the contents
-        tmp.seek(0)
-        return tmp.read()
+            # Read the contents
+            tmp.seek(0)
+            return tmp.read()
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            os.remove(tmp_path)
 
 
 class MarkupText(StringMobject):

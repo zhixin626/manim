@@ -237,6 +237,7 @@ class Scene(object):
             add=self.add,
             remove=self.remove,
             clear=self.clear,
+            states=self.checkpoint_states,
             focus=self.focus,
             save_state=self.save_state,
             reload=self.reload,
@@ -765,7 +766,7 @@ class Scene(object):
             )
 
         pasted = pyperclip.paste()
-        lines = pasted.split("\n")
+        lines = pasted.split("\r\n")    # i change here
 
         # Commented lines trigger saved checkpoints
         if lines[0].lstrip().startswith("#"):

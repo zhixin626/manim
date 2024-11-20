@@ -268,3 +268,5 @@ class Tex(StringMobject):
 
 class TexText(Tex):
     tex_environment: str = ""
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)

@@ -41,6 +41,8 @@ def recursive_mobject_remove(mobjects: List[Mobject], to_remove: Set[Mobject]) -
             mob.submobjects, to_remove
         )
         if found_in_submobjects:
+            # mob.set_submobjects(sub_list) # changed
+            # result.append(mob)            # changed
             result.extend(sub_list)
             found_in_list = True
         else:
