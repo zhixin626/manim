@@ -421,34 +421,80 @@ class Matrix_usefulness(InteractiveScene):
         self.play(frame.animate.reorient(20, 55, 0, (0.82, 1.28, 0.64), 4.69))
         Animations=get_animations(linear_comb3[1],ax)
         self.play(LaggedStart(Animations),run_time=2)
-        grp,arrow=get_lines(ax,linear_comb3[1])
+        grp,arrow1=get_lines(ax,linear_comb3[1])
         self.play(LaggedStartMap(ShowCreation,grp[0],run_time=1))
         self.play(LaggedStartMap(ShowCreation,grp[1],run_time=1))
-        self.play(LaggedStartMap(ShowCreation,grp[2],run_time=1),GrowArrow(arrow))
+        self.play(LaggedStartMap(ShowCreation,grp[2],run_time=1),GrowArrow(arrow1))
         self.play(FadeOut(grp))
 
         self.play(frame.animate.reorient(-35, 59, 0, (-0.22, 0.08, 0.91), 4.69))
         Animations=get_animations(linear_comb3[4],ax)
         self.play(LaggedStart(Animations),run_time=2)
-        grp,arrow=get_lines(ax,linear_comb3[4])
+        grp,arrow2=get_lines(ax,linear_comb3[4])
         self.play(LaggedStartMap(ShowCreation,grp[0],run_time=1))
         self.play(LaggedStartMap(ShowCreation,grp[1],run_time=1))
-        self.play(LaggedStartMap(ShowCreation,grp[2],run_time=1),GrowArrow(arrow))
+        self.play(LaggedStartMap(ShowCreation,grp[2],run_time=1),GrowArrow(arrow2))
         self.play(FadeOut(grp))
 
         self.play(frame.animate.reorient(21, 52, 0, (1.56, -1.16, 0.64), 5.60))
         Animations=get_animations(linear_comb3[7],ax)
         self.play(LaggedStart(Animations),run_time=2)
-        grp,arrow=get_lines(ax,linear_comb3[7])
+        grp,arrow3=get_lines(ax,linear_comb3[7])
         self.play(LaggedStartMap(ShowCreation,grp[0],run_time=1))
         self.play(LaggedStartMap(ShowCreation,grp[1],run_time=1))
-        self.play(LaggedStartMap(ShowCreation,grp[2],run_time=1),GrowArrow(arrow))
+        self.play(LaggedStartMap(ShowCreation,grp[2],run_time=1),GrowArrow(arrow3))
         self.play(FadeOut(grp))
 
         
         # span 3d space
+        def get_rotmat(x2:np.ndarray,y2:np.ndarray,x1=RIGHT,y1=UP,z1=OUT):
+            # x2,y2 just need to be two vectors in that plane
+            # x2,y2 can be not orthogonal
+            # x2=np.array([1,2,3]) form
+            # make orthonomal matrix
+            x2=x2
+            y2=y2-x2*(np.dot(y2,x2.T)/np.dot(x2,x2.T))
+            z2=cross(x2,y2)
+            init_mat=np.array([normalize(x1),normalize(y1),normalize(z1)]) # A'
+            final_mat=np.array([normalize(x2),normalize(y2),normalize(z2)]) # B'
+            return np.dot(init_mat,final_mat.T) # R=A'B
+
         self.play(linear_comb3.animate.scale(0.5,about_point=linear_comb3.get_corner(UP+RIGHT)),
             mat3.animate.scale(0.5,about_point=mat3.get_corner(LEFT+UP))) 
+        nbp=NumberPlaneCustom()
+        self.play(Write(nbp),frame.animate.reorient(-33, 52, 0, (0.97, -0.42, 1.79), 5.60))
+
+        rotmat=get_rotmat(arrow1.get_end(),arrow2.get_end())
+        self.play(nbp.animate.apply_matrix(rotmat))
+
+        # spane
+        def get_span_along_certain_direction(plane,direction,number=3,buff=1):
+            direction=normalize(direction)
+            copys1=plane.replicate(math.ceil(number/2))
+            for index,submob in enumerate(copys1.submobjects):
+                index=index+1
+                submob.shift(direction*buff*index)
+            copys2=plane.replicate(math.floor(number/2))
+            for index,submob in enumerate(copys2.submobjects):
+                index=index+1
+                submob.shift(-direction*buff*index)
+            grp=VGroup(copys1,copys2)
+            return grp
+        # faded_nbp=NumberPlaneCustom(
+        #     background_line_style=dict(stroke_color=PURPLE_A,
+        #     stroke_width=1,
+        #     stroke_opacity=0.4),
+        #     axis_config=dict(stroke_color=PURPLE,
+        #     stroke_width=2,
+        #     stroke_opacity=0.8))      
+        nbp.set_style(stroke_width=1,stroke_color=WHITE,stroke_opacity=0.5,
+            fill_color=WHITE,fill_opacity=0.5)
+        grp=get_span_along_certain_direction(nbp,arrow3.get_end(),number=10)
+        self.add(grp)
+
+
+
+
 
 # customs
 class MatrixCustom(Matrix):
