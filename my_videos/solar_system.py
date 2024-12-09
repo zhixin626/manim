@@ -141,32 +141,6 @@ class solar_system(InteractiveScene):
         mat=np.array([[1,0,0],[0,1,0],[0,0,0.01]])
         self.play(t_earth.animate.apply_matrix(mat))      
 
-class test_sphere_resolution(InteractiveScene):
-    def construct(self):
-        # start
-        frame=self.frame
-        factor=23455
-        correction_vector=np.array([factor,0,0])
-
-        mercury=Sphere(radius=0.38,resolution=(52,101))
-        mercury.move_to(np.array([factor*0.38,0,0])-correction_vector)
-        t_mercury=TexturedSurface(mercury,"mercury.jpg","mercury_night.jpg")
-        self.add(t_mercury)
-        frame.reorient(-6,68,0,mercury.get_center(),1)
-
-class Text2(VGroup):
-    def __init__(self, 
-        english,chinese,direction=DOWN,
-        font1="Mongolian Baiti",font2="SJsuqian",
-        font_size1=48,font_size2=40,
-        buff=0.2,
-         **kwargs):
-        text_A = Text(english, font=font1, font_size=font_size1,**kwargs)
-        text_B = Text(chinese, font=font2,font_size=font_size2, **kwargs)
-        super().__init__(text_A, text_B)
-        self.en=text_A
-        self.ch=text_B
-        text_B.next_to(text_A, direction,buff=buff)
 class Matrix_usefulness(InteractiveScene):
     def construct(self):
         frame=self.frame
@@ -207,8 +181,8 @@ class Matrix_usefulness(InteractiveScene):
             isolate=["+"]
                         )
         grp=VGroup(tex_mat_aug,tex_eqn).arrange(RIGHT,buff=1)
-        text1=Text2('Matrix','矩阵',DOWN,buff=0.4).next_to(tex_mat_aug,UP)
-        text2=Text2('Augmented Matrix','增广矩阵',DOWN,buff=0.2).next_to(tex_mat_aug,UP)
+        text1=TextCustom('Matrix','矩阵',DOWN,buff=0.4).next_to(tex_mat_aug,UP)
+        text2=TextCustom('Augmented Matrix','增广矩阵',DOWN,buff=0.2).next_to(tex_mat_aug,UP)
         saved_state=tex_mat_aug[22:24].copy()           # bracket original position
         tex_mat_aug[22:24].move_to(tex_mat_aug[11:17])  # move bracket
     
@@ -287,7 +261,7 @@ class Matrix_usefulness(InteractiveScene):
         tex_mat_1d.to_corner(UL)
         nbl=NumberLine((-10,10))
         nbl.add_numbers()
-        a=Tex(R'\mathrm{a}')
+        a=Tex(R'a')
         a_vec=tex_mat_1d.copy()
         a_number=DecimalNumber(0,num_decimal_places=1,
                                 include_sign=True,
@@ -487,49 +461,182 @@ class Matrix_usefulness(InteractiveScene):
         #     axis_config=dict(stroke_color=PURPLE,
         #     stroke_width=2,
         #     stroke_opacity=0.8))      
-        nbp.set_style(stroke_width=1,stroke_color=WHITE,stroke_opacity=0.5,
-            fill_color=WHITE,fill_opacity=0.5)
+        # nbp.set_style(stroke_width=1,stroke_color=WHITE,stroke_opacity=0.5,
+        #     fill_color=WHITE,fill_opacity=0.5)
         grp=get_span_along_certain_direction(nbp,arrow3.get_end(),number=10)
         self.add(grp)
+        
+        # color
+        text=Text('check color gradient').set_color_by_gradient([BLUE,GREEN])
+        self.add(text)
+        ax=NumberLine()
+        self.add(ax)
+        ax.space_out_submobjects()
+class span_2d_space(InteractiveScene):
+    def construct(self):
+        # init
+        frame=self.frame
+        # start
+        mat=MatrixCustom(np.array([[1,0],[0,1],[1,1]]))
+        grp=mat.get_linear_combination()
+        self.add(mat,grp)
+        changeable_parts=mat.get_changeable_parts()
+        mat.fix_in_frame()
+        grp.fix_in_frame()
+        changeable_parts.fix_in_frame()
+        # spane space
+        def get_added_arrow(arrow1,arrow2,ax):
+            coord1=ax.p2c(arrow1.get_end())   # which is a tuple
+            coord1=np.array(coord1)           # convert to npdarray
+            coord2=ax.p2c(arrow2.get_end())
+            coord2=np.array(coord2)
+            coord=coord1+coord2
+            added_arrow=Arrow(ax.c2p(0,0,0),ax.c2p(*coord),buff=0)
+            return added_arrow
+        def get_dashed_lines(arrow1,arrow2,added_arrow):
+            dashed_lines=VGroup()
+            line1=DashedLine(arrow1.get_end(),added_arrow.get_end())
+            line2=DashedLine(arrow2.get_end(),added_arrow.get_end())
+            dashed_lines.add(line1,line2)
+            dashed_lines.set_opacity(0.5)
+            return dashed_lines
+
+        ax=ThreeDAxesCustom()
+        ax.add_axis_labels()
+        self.add(ax)
+        frame.reorient(17, 35, 0, (0.49, 0.6, 0.23), 8.00)
+
+        arrow1,arrow2=mat.get_column_vectors(ax)
+        self.add(arrow1,arrow2)
+        arrow3=get_added_arrow(arrow1,arrow2,ax)
+        lines=get_dashed_lines(arrow1,arrow2,arrow3)
+        self.add(arrow3,lines)
+
+        # decimal number
+        self.remove(mat.parts)
+        self.add(changeable_parts)
+        arrow1_arr=mat.vector_matrices[0].nparr.flatten()
+        arrow2_arr=mat.vector_matrices[1].nparr.flatten()
+        factor1=changeable_parts[0]
+        factor2=changeable_parts[1]
+        vt1=ValueTracker(1)
+        vt2=ValueTracker(1)
+        def arrow1_updater(mob):
+            arrow1_coord=vt1.get_value()*arrow1_arr
+            mob.put_start_and_end_on(ax.c2p(0,0,0),ax.c2p(*arrow1_coord))        
+        def arrow2_updater(mob):
+            arrow2_coord=vt2.get_value()*arrow2_arr
+            mob.put_start_and_end_on(ax.c2p(0,0,0),ax.c2p(*arrow2_coord))
+        arrow1.add_updater(arrow1_updater)
+        arrow2.add_updater(arrow2_updater)
+        factor1.f_always.set_value(lambda:vt1.get_value()).set_color(TEAL)
+        factor2.f_always.set_value(lambda:vt2.get_value())
+        self.play(vt1.animate.set_value(3),vt2.animate.set_value(-3))
+        self.play(vt1.animate.set_value(-3),vt2.animate.set_value(3))
+
+
+
 
 
 
 
 
 # customs
+class TextCustom(VGroup):
+    def __init__(self, 
+        en=None                   ,ch=None,
+        direction=DOWN,
+        buff=0.2,
+        font_en="Mongolian Baiti" ,font_ch="SJsuqian",
+        font_size_en=48           ,font_size_ch=40,
+        en_config=dict()          ,ch_config=dict(),
+        **kwargs):
+        super().__init__(**kwargs)
+        self.en = None
+        self.ch = None
+        if en is not None:
+            self.en = Text(en, font=font_en, font_size=font_size_en,**en_config)
+            self.add(self.en)
+        if ch is not None:
+            self.ch = Text(ch, font=font_ch, font_size=font_size_ch,**ch_config)
+            self.add(self.ch)
+        if self.en and self.ch:
+            self.ch.next_to(self.en, direction, buff=buff)
+
 class MatrixCustom(Matrix):
     def __init__(self,matrix_arr,**kwargs):
         super().__init__(matrix_arr,**kwargs)
+        # attributes
         self.nparr=matrix_arr # just easy to get matrix array
+        self.number_of_columns=len(self.nparr[0,:])
+        self.color_palette=[TEAL_B,YELLOW,BLUE,RED_A]
+        # position
         self.to_corner(UL)
-        self.col_colors()
+        # colors
+        self.set_col_colors()
         self.bracket_color=WHITE
         self.brackets.set_color(self.bracket_color)
-    def col_colors(self):
-        number_of_columns=len(self.nparr[0,:])
-        self.number_of_columns=number_of_columns
-        col_colors=[TEAL_B,YELLOW,BLUE,RED_A]
-        self.col_colors=col_colors
-        for i in range(number_of_columns):
-            self.columns[i].set_color(col_colors[i])
-    def get_linear_combination(self):
+    def set_col_colors(self):
+        for i in range(self.number_of_columns):
+            self.columns[i].set_color(self.color_palette[i])
+    def get_linear_combination(self,**kwargs):
+        # 
         coefficients=['a','b','c','d','e']
-        a=Tex('a').set_color(self.col_colors[0])
-        grp=VGroup(a,self.get_matrix_nth_column_vector(0))
+        a=Tex('a').set_color(self.color_palette[0])
+        first_vector=self.get_matrix_nth_column_vector(0)
+        vector_matrices=self.get_all_column_vectors()
+        grp=VGroup(a,vector_matrices[0])
+        self.parts=VGroup(a)
         for i in range(self.number_of_columns-1):
             plus=Tex('+')
-            tex=Tex(coefficients[i+1]).set_color(self.col_colors[i+1])
-            vec=self.get_matrix_nth_column_vector(i+1)
+            tex=Tex(coefficients[i+1]).set_color(self.color_palette[i+1])
+            vec=vector_matrices[i+1]
             grp.add(plus,tex,vec)
-        grp.arrange(RIGHT).to_corner(UR)
+            self.parts.add(VGroup(plus,tex))
+        grp.arrange(RIGHT,**kwargs).to_corner(UR)
+        self.vector_matrices=vector_matrices
+        self.linear_combination=grp
+        return self.linear_combination
+    def get_changeable_parts(self,places=1,font_size=30,first_buff=0.2,inner_buff=0.1):
+        number_of_parts=len(self.parts)
+        changeable_parts=VGroup()
+        for i in range(number_of_parts):
+            if i == 0 :
+                number=DecimalNumber(1,num_decimal_places=places,include_sign=True,font_size=font_size)
+                VGroup(number[0],number[1:]).arrange(RIGHT,buff=inner_buff)
+                number[0].set_color(WHITE)
+                number[1:].match_color(self.parts[i])
+                number.move_to(self.parts[i]).shift(LEFT*first_buff)
+            else :
+                number=DecimalNumber(1,num_decimal_places=places,include_sign=True,font_size=font_size)
+                VGroup(number[0],number[1:]).arrange(RIGHT,buff=inner_buff)
+                number[0].match_color(self.parts[i][0])
+                number[1:].match_color(self.parts[i][1])
+                number.move_to(self.parts[i])
+            changeable_parts.add(number)
+        self.changeable_parts=changeable_parts
+        return self.changeable_parts
+    def get_all_column_vectors(self):
+        grp=VGroup()
+        for i in range(self.number_of_columns):
+            grp.add(self.get_matrix_nth_column_vector(i))
+        grp.arrange(RIGHT)
         return grp
     def get_matrix_nth_column_vector(self,nth):
         new_arr=self.nparr[:,nth:nth+1]
-        new_mat=Matrix(new_arr)
+        new_mat=MatrixCustom(new_arr)
         new_mat.nparr=new_arr
-        new_mat.set_color(self.col_colors[nth])
+        new_mat.set_color(self.color_palette[nth])
         new_mat.brackets.set_color(self.bracket_color)
         return new_mat
+    def get_column_vectors(self,ax,**kwargs):
+        grp=VGroup()
+        for i in range(self.number_of_columns):
+            arrow=Arrow(ax.c2p(0,0,0),ax.c2p(*self.nparr[:,i]),buff=0,**kwargs)
+            arrow.match_color(self.columns[i])
+            grp.add(arrow)
+        return grp
+
 class ThreeDAxesCustom(ThreeDAxes):
     def __init__(
         self,
@@ -594,7 +701,9 @@ class NumberPlaneCustom(NumberPlane):
     default_y_axis_config: dict = dict(
         line_to_number_direction=DL,
         )
-    def __init__(self, x_range=(-6,6,1), y_range=(-3,3,1),
+    def __init__(self, 
+        x_range=(-6,6,1), 
+        y_range=(-3,3,1),
         background_line_style: dict = dict(
             stroke_color=YELLOW_A,
             stroke_width=2,
@@ -611,26 +720,6 @@ class NumberPlaneCustom(NumberPlane):
             background_line_style=background_line_style,
             faded_line_style=faded_line_style,
             **kwargs)
-class nbpscene(InteractiveScene):
-    def construct(self):
-        # init
-        frame=self.frame
-
-        # start
-        nbp=NumberPlaneCustom()
-        self.add(nbp)
-
-        ax=ThreeDAxesCustom()
-        ax.add_axis_labels()
-        self.add(ax)
-
-        frame.to_default_state()
-        animations=[
-                Write(ax),
-                frame.animate.reorient(15, 39, 0, (0.56, 0.66, 0.32)),
-                Write(nbp),
-                ]
-        self.play(LaggedStart(animations,lag_ratio=0.02),run_time=3)   # beautiful !!
 
 
         
