@@ -1,6 +1,6 @@
-矩阵的三种作用
+# 矩阵的三种作用
 
-1.存储数据
+## 1. 存储数据
 
 - 方程
 
@@ -25,7 +25,7 @@ $$
   $$
   
 
-2.线性变换：
+## 2. 线性变换：
 
 - 旋转
 
@@ -86,7 +86,8 @@ $$
   - 点投影到线
   - 三维物体投影到平面
 
-3.线性空间： 2D 3D 4D
+## 3. 线性空间： 2D 3D 4D
+
 $$
 A_1=\left[\enspace\begin{matrix}
 1&0\\
@@ -113,14 +114,14 @@ $$
 
 - 秩为2的矩阵，可以表示二维空间
 
-  列向量 $\begin{bmatrix}1\\0\end{bmatrix}$ 和 $\begin{bmatrix}0\\1\end{bmatrix}$ 可以线性组合出二维平面的所有点。
+  $A_1$的列向量 $\begin{bmatrix}1\\0\end{bmatrix}$ 和 $\begin{bmatrix}0\\1\end{bmatrix}$ 可以线性组合出二维平面的所有点。
 
 - 秩为3的矩阵，可以表示三维空间
 
-  列向量 $\begin{bmatrix}1\\0\\0\end{bmatrix}$ 和 $\begin{bmatrix}0\\1\\0\end{bmatrix}$和$\begin{bmatrix}0\\0\\1\end{bmatrix}$ 可以线性组合出三维空间的所有点。
+  $A_2$的列向量 $\begin{bmatrix}1\\0\\0\end{bmatrix}$ 和 $\begin{bmatrix}0\\1\\0\end{bmatrix}$和$\begin{bmatrix}0\\0\\1\end{bmatrix}$ 可以线性组合出三维空间的所有点。
 
 - 秩为4的矩阵，可以表示四维空间
 
-  列向量 $\begin{bmatrix}1\\0\\0\\0\end{bmatrix}$ 和 $\begin{bmatrix}0\\1\\0\\0\end{bmatrix}$和$\begin{bmatrix}0\\0\\1\\0\end{bmatrix}$和$\begin{bmatrix}0\\0\\0\\1\end{bmatrix}$ 可以线性组合出四维空间的所有点。
+  $A_3$的列向量 $\begin{bmatrix}1\\0\\0\\0\end{bmatrix}$ 和 $\begin{bmatrix}0\\1\\0\\0\end{bmatrix}$和$\begin{bmatrix}0\\0\\1\\0\end{bmatrix}$和$\begin{bmatrix}0\\0\\0\\1\end{bmatrix}$ 可以线性组合出四维空间的所有点。
   
   

@@ -485,31 +485,18 @@ class span_2d_space(InteractiveScene):
         grp.fix_in_frame()
         changeable_parts.fix_in_frame()
         # spane space
-        def get_added_arrow(arrow1,arrow2,ax):
-            coord1=ax.p2c(arrow1.get_end())   # which is a tuple
-            coord1=np.array(coord1)           # convert to npdarray
-            coord2=ax.p2c(arrow2.get_end())
-            coord2=np.array(coord2)
-            coord=coord1+coord2
-            added_arrow=Arrow(ax.c2p(0,0,0),ax.c2p(*coord),buff=0)
-            return added_arrow
-        def get_dashed_lines(arrow1,arrow2,added_arrow):
-            dashed_lines=VGroup()
-            line1=DashedLine(arrow1.get_end(),added_arrow.get_end())
-            line2=DashedLine(arrow2.get_end(),added_arrow.get_end())
-            dashed_lines.add(line1,line2)
-            dashed_lines.set_opacity(0.5)
-            return dashed_lines
+        
 
         ax=ThreeDAxesCustom()
         ax.add_axis_labels()
         self.add(ax)
         frame.reorient(17, 35, 0, (0.49, 0.6, 0.23), 8.00)
-
+        
+        # arrows
         arrow1,arrow2=mat.get_column_vectors(ax)
         self.add(arrow1,arrow2)
-        arrow3=get_added_arrow(arrow1,arrow2,ax)
-        lines=get_dashed_lines(arrow1,arrow2,arrow3)
+        arrow3=always_redraw(lambda:get_added_arrow(arrow1,arrow2,ax))
+        lines=always_redraw(lambda:get_dashed_lines(arrow1,arrow2,arrow3))
         self.add(arrow3,lines)
 
         # decimal number
@@ -529,10 +516,141 @@ class span_2d_space(InteractiveScene):
             mob.put_start_and_end_on(ax.c2p(0,0,0),ax.c2p(*arrow2_coord))
         arrow1.add_updater(arrow1_updater)
         arrow2.add_updater(arrow2_updater)
-        factor1.f_always.set_value(lambda:vt1.get_value()).set_color(TEAL)
+        factor1.f_always.set_value(lambda:vt1.get_value())
+        factor1.always.set_color(TEAL)
         factor2.f_always.set_value(lambda:vt2.get_value())
-        self.play(vt1.animate.set_value(3),vt2.animate.set_value(-3))
+        factor2.always.set_color(YELLOW)
+        self.play(vt1.animate.set_value(3),vt2.animate.set_value(2))
         self.play(vt1.animate.set_value(-3),vt2.animate.set_value(3))
+        self.play(vt1.animate.set_value(-3),vt2.animate.set_value(-2))
+        self.play(vt1.animate.set_value(3),vt2.animate.set_value(-3))
+
+        arrow3.clear_updaters()
+        lines.clear_updaters()
+        factor1.clear_updaters()
+        factor2.clear_updaters()
+        arrow1.clear_updaters()
+        arrow2.clear_updaters()
+
+class span_2d_space_animation(InteractiveScene):
+    def construct(self):
+        # init
+        frame=self.frame
+        # start
+        ax=ThreeDAxesCustom()
+        ax.add_axis_labels()
+        ax.add_coordinate_labels()
+        nbp=NumberPlaneCustom()
+        ax.set_opacity(0.5)
+        self.add(ax.x_axis,ax.y_axis)
+
+        # matrix,arrows 
+        mat=MatrixCustom(np.array([[1,0],[0,1]]))
+        comb=mat.get_linear_combination()
+        mat.fix_in_frame()
+        comb.fix_in_frame()
+        arrow1,arrow2=mat.get_column_arrows(ax)
+        added_arrow=get_added_arrow(arrow1,arrow2,axis=ax)
+        self.add(mat,comb,arrow1,arrow2)
+        self.add(added_arrow) 
+
+        # chaneable parts
+        frame.to_default_state()
+        changeable_parts=mat.get_changeable_parts()
+        changeable_parts.fix_in_frame()
+        self.remove(mat.parts)
+        self.add(changeable_parts)
+
+        # updater
+        def get_updater(arr,vt,ax):
+            def updater(m):
+                factor=vt.get_value()
+                m.put_start_and_end_on(ax.c2p(0,0,0),ax.c2p(*factor*arr)) 
+            return updater
+        def get_added_arrow_updater(vt1,vt2,arr1,arr2,ax):
+            def updater(m):
+                factor1=vt1.get_value()
+                factor2=vt2.get_value()
+                arr=vt1.get_value()*arr1+vt2.get_value()*arr2
+                m.put_start_and_end_on(ax.c2p(0,0,0),ax.c2p(*arr))
+            return updater
+        vt1=ValueTracker(1)
+        vt2=ValueTracker(1)
+        changeable_parts[0].always.set_color(TEAL_B)
+        changeable_parts[1].always.set_color(YELLOW)
+        changeable_parts[0].f_always.set_value(lambda:vt1.get_value())
+        changeable_parts[1].f_always.set_value(lambda:vt2.get_value())
+        arrow1.add_updater(get_updater(arrow1.nparr,vt1,ax))
+        arrow2.add_updater(get_updater(arrow2.nparr,vt2,ax))
+        added_arrow.add_updater(get_added_arrow_updater(vt1,vt2,arrow1.nparr,arrow2.nparr,ax))
+        dashedline1=always_redraw(lambda:
+            DashedLine(arrow1.get_end(),added_arrow.get_end(),stroke_opacity=0.8))
+        dashedline2=always_redraw(lambda:
+            DashedLine(arrow2.get_end(),added_arrow.get_end(),stroke_opacity=0.8))
+        self.add(dashedline1,dashedline2)
+
+        # loop animations
+        tt=TracingTail(lambda:added_arrow.get_end(),time_traced=0.2)
+        self.add(tt)
+        anims=get_span_animation(vt1=vt1,vt2=vt2,axis=ax)
+        for i,ani in enumerate(anims,start=1):
+            self.play(eval(ani),rate_func=linear,
+                run_time=1/math.sqrt(i))
+        arrow1.suspend_updating()
+        arrow2.suspend_updating()
+        added_arrow.suspend_updating()
+        dashedline1.suspend_updating()
+        dashedline2.suspend_updating()
+        self.play(Write(nbp),
+            LaggedStartMap(FadeOut,VGroup(tt,arrow1,arrow2,added_arrow,dashedline1,dashedline2)))
+        self.play(ax.x_axis.animate.set_opacity(1),ax.y_axis.animate.set_opacity(1))
+
+        # span 3d space
+        # self.play(Write(ax.z_axis),
+        #     frame.animate.reorient(15, 36, 0, (0.4, 0.59, 0.2), 8.00))
+        mat_3d=MatrixCustom(np.array([[1,0,0],[0,1,0],[0,0,0]]))
+        mat_3d.fix_in_frame()
+        mat_3d_comb=mat_3d.get_linear_combination()
+        mat_3d_comb.fix_in_frame()
+        self.play(ReplacementTransform(mat,mat_3d))
+        self.play(ReplacementTransform(comb,mat_3d_comb),FadeOut(changeable_parts))
+
+        
+
+def get_span_animation(vt1,vt2,axis):   # problem
+    x_min=axis.x_axis.x_min
+    x_max=axis.x_axis.x_max    
+    y_min=axis.y_axis.x_min
+    y_max=axis.y_axis.x_max
+    max_number=max(x_max,y_max,abs(x_min),abs(y_min))
+    animations=[]
+    for i in range(int(max_number)):
+        value=i+1
+        animations.append(f'vt1.animate.set_value({min(value,x_max)})')
+        animations.append(f'vt2.animate.set_value({min(value,y_max)})')
+        animations.append(f'vt1.animate.set_value({max(-value,x_min)})')
+        animations.append(f'vt2.animate.set_value({max(-value,y_min)})')     
+    return animations
+
+
+
+
+def get_added_arrow(arrow1,arrow2,axis):
+    coord1=axis.p2c(arrow1.get_end())   # which is a tuple
+    coord1=np.array(coord1)           # convert to npdarray
+    coord2=axis.p2c(arrow2.get_end())
+    coord2=np.array(coord2)
+    coord=coord1+coord2
+    added_arrow=Arrow(axis.c2p(0,0,0),axis.c2p(*coord),buff=0)
+    return added_arrow
+def get_dashed_lines(arrow1,arrow2,added_arrow):
+    dashed_lines=VGroup()
+    line1=DashedLine(arrow1.get_end(),added_arrow.get_end())
+    line2=DashedLine(arrow2.get_end(),added_arrow.get_end())
+    dashed_lines.add(line1,line2)
+    dashed_lines.set_opacity(0.5)
+    return dashed_lines
+
 
 
 
@@ -629,13 +747,15 @@ class MatrixCustom(Matrix):
         new_mat.set_color(self.color_palette[nth])
         new_mat.brackets.set_color(self.bracket_color)
         return new_mat
-    def get_column_vectors(self,ax,**kwargs):
+    def get_column_arrows(self,ax,**kwargs):
         grp=VGroup()
         for i in range(self.number_of_columns):
             arrow=Arrow(ax.c2p(0,0,0),ax.c2p(*self.nparr[:,i]),buff=0,**kwargs)
+            arrow.nparr=self.nparr[:,i]
             arrow.match_color(self.columns[i])
             grp.add(arrow)
         return grp
+
 
 class ThreeDAxesCustom(ThreeDAxes):
     def __init__(
@@ -654,16 +774,16 @@ class ThreeDAxesCustom(ThreeDAxes):
         self.x_axis.ticks.set_color(YELLOW)
         self.y_axis.ticks.set_color(YELLOW)
         self.z_axis.ticks.set_color(YELLOW)
-        # hide the tick in origin
-        self.x_axis.ticks[int(self.x_axis.x_max)].set_opacity(0)
-        self.y_axis.ticks[int(self.y_axis.x_max)].set_opacity(0)
-        self.z_axis.ticks[int(self.z_axis.x_max)].set_opacity(0)
+        # remove the tick in origin
+        self.remove(self.x_axis.ticks[int(self.x_axis.x_max)])
+        self.remove(self.y_axis.ticks[int(self.y_axis.x_max)])
+        self.remove(self.z_axis.ticks[int(self.z_axis.x_max)])
 
     def add_coordinate_labels(self,
         x_values=None,
         y_values=None,
         z_values=None,
-        excluding=[],font_size=18,**kwargs) :
+        excluding=[0],font_size=18,**kwargs) :
         super().add_coordinate_labels(
             x_values=x_values,
             y_values=y_values,
@@ -675,7 +795,7 @@ class ThreeDAxesCustom(ThreeDAxes):
         self.coordinate_labels.add(z_labels)
         # (3,2,-1,0,1,2,3) labels color
         self.coordinate_labels.set_color(YELLOW)
-        self.set_zero_opacity()
+        # self.set_zero_opacity()
         return self.coordinate_labels
     def set_zero_opacity(self,opacity=0):
         x_grp,y_grp,z_grp=self.coordinate_labels
@@ -688,7 +808,7 @@ class ThreeDAxesCustom(ThreeDAxes):
     def add_axis_labels(self,*args,**kwargs):
         super().add_axis_labels(*args,**kwargs,font_size=70,buff=0.3)
         # axes labels (x,y,z) color
-        self.axis_labels.set_color(PURPLE_A)
+        self.axis_labels.set_color(YELLOW)
 class NumberPlaneCustom(NumberPlane):
     default_axis_config: dict = dict(
         stroke_color=PURPLE_A,
@@ -707,12 +827,12 @@ class NumberPlaneCustom(NumberPlane):
         background_line_style: dict = dict(
             stroke_color=YELLOW_A,
             stroke_width=2,
-            stroke_opacity=0.5,
+            stroke_opacity=0.3,
             ), 
         faded_line_style: dict = dict(
-            stroke_color=PURPLE_A,
+            stroke_color=PURPLE_B,
             stroke_width=1,
-            stroke_opacity=0.4,),
+            stroke_opacity=0.3,),
          **kwargs
     ):
         super().__init__(
