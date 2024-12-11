@@ -550,7 +550,7 @@ class span_2d_space_animation(InteractiveScene):
         mat.fix_in_frame()
         comb.fix_in_frame()
         arrow1,arrow2=mat.get_column_arrows(ax)
-        added_arrow=get_added_arrow(arrow1,arrow2,axis=ax)
+        added_arrow=get_added_arrow([arrow1,arrow2],axis=ax)
         self.add(mat,comb,arrow1,arrow2)
         self.add(added_arrow) 
 
@@ -606,18 +606,105 @@ class span_2d_space_animation(InteractiveScene):
         self.play(ax.x_axis.animate.set_opacity(1),ax.y_axis.animate.set_opacity(1))
 
         # span 3d space
-        # self.play(Write(ax.z_axis),
-        #     frame.animate.reorient(15, 36, 0, (0.4, 0.59, 0.2), 8.00))
-        mat_3d=MatrixCustom(np.array([[1,0,0],[0,1,0],[0,0,0]]))
+        self.remove(mat,changeable_parts,comb)
+        mat_3d=MatrixCustom(np.array([[1,0,0],[0,1,0],[0,0,1]]))
         mat_3d.fix_in_frame()
         mat_3d_comb=mat_3d.get_linear_combination()
         mat_3d_comb.fix_in_frame()
-        self.play(ReplacementTransform(mat,mat_3d))
-        self.play(ReplacementTransform(comb,mat_3d_comb),FadeOut(changeable_parts))
+        self.add(mat_3d,mat_3d_comb)
+        mat_3d.scale(0.7,about_point=mat_3d.get_corner(UL))
+        mat_3d_comb.scale(0.7,about_point=mat_3d_comb.get_corner(UR))
+        changeable_parts_3d=mat_3d.get_changeable_parts(font_size=20)
+        changeable_parts_3d.fix_in_frame()
+        self.play(*map(FlashAround,mat_3d.parts))
+        self.play(ReplacementTransform(mat_3d.parts,changeable_parts_3d))
+        self.add(ax.z_axis)
+        arrows=mat_3d.get_column_arrows(ax)
+        added_arrow2=get_added_arrow(arrows,axis=ax)
+        self.add(arrows)
+        self.add(added_arrow2)
+        # self.remove(mat_3d.parts)
+        # self.add(changeable_parts_3d)
+class numberspcae(InteractiveScene):
+    def construct(self):
+        # init
+        frame=self.frame
+        # start
+        ax=ThreeDAxesCustom()
+        ax.add_axis_labels()
+        self.add(ax)
+
+        # lines
+        def get_lines_grp(ax):
+            x_min=ax.x_axis.x_min
+            x_max=ax.x_axis.x_max
+            y_min=ax.y_axis.x_min
+            y_max=ax.y_axis.x_max
+            z_min=ax.z_axis.x_min
+            z_max=ax.z_axis.x_max
+            step=1
+            # x-lines
+            x_grp=VGroup()
+            for z in np.arange(z_min,z_max+1,step):
+                x_subgrp=VGroup()
+                for y in np.arange(y_min,y_max+1,step):
+                    line=Line(ax.c2p(x_min,y,z),ax.c2p(x_max,y,z))
+                    x_subgrp.add(line)
+                x_subgrp.set_opacity(0.2)
+                x_grp.add(x_subgrp)
+            # y-lines
+            y_grp=VGroup()
+            for z in np.arange(z_min,z_max+1,step):
+                y_subgrp=VGroup()
+                for x in np.arange(x_min,x_max+1,step):
+                    line=Line(ax.c2p(x,y_min,z),ax.c2p(x,y_max,z))
+                    y_subgrp.add(line)
+                y_subgrp.set_opacity(0.2)
+                y_grp.add(y_subgrp)
+            # z-lines
+            z_grp=VGroup()
+            for y in np.arange(y_min,y_max+1,step):
+                z_subgrp=VGroup()
+                for x in np.arange(x_min,x_max+1,step):
+                    line=Line(ax.c2p(x,y,z_min),ax.c2p(x,y,z_max))
+                    z_subgrp.add(line)
+                z_subgrp.set_opacity(0.2)
+                z_grp.add(z_subgrp)
+            xyz_grp=VGroup(x_grp,y_grp,z_grp)
+            return xyz_grp
+
+        grp=get_lines_grp(ax)
+        # (x,y,z)=(1,1,1)
+        # x-x_min,y-y_min,z-z_min
+        def grp_index(ax,grp,target_xyz):
+            x=target_xyz[0]
+            y=target_xyz[1]
+            z=target_xyz[2]
+            x_min=ax.x_axis.x_min
+            y_min=ax.y_axis.x_min            
+            z_min=ax.z_axis.x_min
+            z_index=int(z-z_min)
+            x_index=int(x-x_min)
+            y_index=int(y-y_min)
+            x_line=grp[0][z_index][y_index]
+            y_line=grp[1][z_index][x_index]
+            z_line=grp[2][y_index][x_index]
+            return x_line,y_line,z_line
+
+
+        # self.add(grp)
+        self.add(*grp_index(ax,grp,[-6,1,1]))
+        for x in np.arange(-6,6,1):
+            self.play(ReplacementTransform(
+                VGroup(*grp_index(ax,grp,[x,1,1])),
+                VGroup(*grp_index(ax,grp,[x+1,1,1])),))
+
+
+
 
         
 
-def get_span_animation(vt1,vt2,axis):   # problem
+def get_span_animation(vt1,vt2,axis):
     x_min=axis.x_axis.x_min
     x_max=axis.x_axis.x_max    
     y_min=axis.y_axis.x_min
@@ -632,32 +719,12 @@ def get_span_animation(vt1,vt2,axis):   # problem
         animations.append(f'vt2.animate.set_value({max(-value,y_min)})')     
     return animations
 
-
-
-
-def get_added_arrow(arrow1,arrow2,axis):
-    coord1=axis.p2c(arrow1.get_end())   # which is a tuple
-    coord1=np.array(coord1)           # convert to npdarray
-    coord2=axis.p2c(arrow2.get_end())
-    coord2=np.array(coord2)
-    coord=coord1+coord2
+def get_added_arrow(arrows,axis):
+    coord=np.zeros(3)
+    for arrow in arrows:
+        coord += np.array(axis.p2c(arrow.get_end())) 
     added_arrow=Arrow(axis.c2p(0,0,0),axis.c2p(*coord),buff=0)
     return added_arrow
-def get_dashed_lines(arrow1,arrow2,added_arrow):
-    dashed_lines=VGroup()
-    line1=DashedLine(arrow1.get_end(),added_arrow.get_end())
-    line2=DashedLine(arrow2.get_end(),added_arrow.get_end())
-    dashed_lines.add(line1,line2)
-    dashed_lines.set_opacity(0.5)
-    return dashed_lines
-
-
-
-
-
-
-
-
 
 # customs
 class TextCustom(VGroup):
@@ -755,6 +822,7 @@ class MatrixCustom(Matrix):
             arrow.match_color(self.columns[i])
             grp.add(arrow)
         return grp
+
 
 
 class ThreeDAxesCustom(ThreeDAxes):
