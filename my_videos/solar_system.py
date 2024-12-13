@@ -40,7 +40,7 @@ class image(InteractiveScene):
         ax.add_axis_labels()
         self.add(ax)
         frame.reorient(58, 64, 0, (0.22, 1.1, 0.42))
-        im_mob=ImageMobject('show_image.jpg')
+        im_mob=ImageMobject('resized_image.jpg')
         im_mob.rotate(PI/2,axis=RIGHT)
         im_mob.set_opacity(0.5)
         im_mob_r=ImageMobject('r.png')

@@ -186,7 +186,7 @@ class Matrix(VMobject):
         if use_vdots:
             for column in cols:
                 # Add vdots
-                dots = Tex(R'.\\[-10pt].\\[-10pt].')   # \vdots not working??
+                dots = Tex(R'\vdots') 
                 dots.set_height(vdots_height)
                 self.swap_entry_for_dots(column[row_index], dots)
         if use_hdots:
