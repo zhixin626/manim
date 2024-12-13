@@ -75,7 +75,8 @@ class InteractiveSceneEmbed:
             i2m=scene.i2m,
             checkpoint_paste=self.checkpoint_paste,
             clear_checkpoints=self.checkpoint_manager.clear_checkpoints,
-            reload=self.reload_scene  # Defined below
+            reload=self.reload_scene,  # Defined below
+            states=self.checkpoint_manager.checkpoint_states
         )
 
     def enable_gui(self):
@@ -176,7 +177,7 @@ class CheckpointManager:
 
     @staticmethod
     def get_leading_comment(code_string: str) -> str:
-        leading_line = code_string.partition("\n")[0].lstrip()
+        leading_line = code_string.partition("\r\n")[0].lstrip()
         if leading_line.startswith("#"):
             return leading_line
         return ""

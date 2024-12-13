@@ -1,27 +1,10 @@
-break_into_partial_movies: false
-camera_resolutions:
-  4k: 3840x2160
-  default_resolution: high
-  high: 1920x1080
-  low: 854x480
-  medium: 1280x720
+camera:
+  resolution: (1920, 1080)
+  background_color: "#000000"
+text:
+  font: "Mongolian Baiti"
+  alignment: "LEFT"
 directories:
-  base: ./manim_dir
-  mirror_module_path: false
-  subdirs:
-    data: data
-    downloads: ./downloads
-    output: ./outputs
-    raster_images: ./raster_images
-    sounds: ./sounds
-    vector_images: ./vector_images
-cache: ./cache
-fps: 30
-full_screen: false
-style:
-  background_color: '#000000'
-  font: Mongolian Baiti
-  tex_template: default
-universal_import_line: from manimlib import *
-window_monitor: 0
-window_position: UR
+  cache: "cache"
+tex:
+  template: "ctex"
