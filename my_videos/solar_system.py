@@ -1,9 +1,87 @@
 from manimlib import *
 import re
 import numpy as np
+from PIL import Image
+from manimlib.utils.images import get_full_raster_image_path
 def get_orthogonal_proj_matrix(A):
     proj_mat=np.dot(np.dot(A,np.linalg.inv(np.dot(A.T,A))),A.T)
     return proj_mat
+# opengl image blending???? how to do this??
+class image(InteractiveScene):
+    def construct(self):
+        # init
+        frame=self.frame
+        # start
+        image=Image.open('kun.png')
+        resized_image=image.resize((50,50))
+        resized_image.save('show_image.jpg')
+        def save_rgb_image(image):
+            data=image.getdata()
+            r = [(d[0], 0, 0) for d in data]
+            g = [(0, d[1], 0) for d in data]
+            b = [(0, 0, d[2]) for d in data]
+            image.putdata(r)
+            image.save('r.png')
+            image.putdata(g)
+            image.save('g.png')
+            image.putdata(b)
+            image.save('b.png')
+        save_rgb_image(resized_image)
+        image_r=Image.open('r.png')
+        image_g=Image.open('g.png')
+        image_b=Image.open('b.png')
+        r_arr=np.array(image_r.getdata())[:,0].reshape(50,50)
+        g_arr=np.array(image_g.getdata())[:,1].reshape(50,50)
+        b_arr=np.array(image_b.getdata())[:,2].reshape(50,50)
+
+        # add image
+        ax=ThreeDAxesCustom()
+        ax.add_axis_labels()
+        self.add(ax)
+        frame.reorient(58, 64, 0, (0.22, 1.1, 0.42))
+        im_mob=ImageMobject('show_image.jpg')
+        im_mob.rotate(PI/2,axis=RIGHT)
+        im_mob.set_opacity(0.5)
+        im_mob_r=ImageMobject('r.png')
+        im_mob_g=ImageMobject('g.png')
+        im_mob_b=ImageMobject('b.png')
+        grp_rgb=Group(im_mob_r,im_mob_g,im_mob_b).arrange(OUT,buff=1)
+        grp_rgb.rotate(PI/2,axis=RIGHT)
+        grp_rgb.center()
+        im_mob_r.apply_depth_test()
+        im_mob_g.apply_depth_test()
+        im_mob_b.apply_depth_test()
+        grp_rgb.set_opacity(0.5)
+        im_mob.scale(2)
+        grp_rgb.scale(2)
+        image_grp=Group(grp_rgb,im_mob).arrange(RIGHT)
+        self.add(image_grp)
+        frame.reorient(25, 64, 0, (0.38, 1.45, 0.72), 13.31)
+
+        # Matrix
+        mat_r=Matrix(r_arr[:10,:10],ellipses_col=9,ellipses_row=9)
+        mat_g=Matrix(g_arr[:10,:10],ellipses_col=9,ellipses_row=9)
+        mat_b=Matrix(b_arr[:10,:10],ellipses_col=9,ellipses_row=9)
+        grp_mat=VGroup(mat_r,mat_g,mat_b).arrange(OUT,buff=1)
+        grp_mat.rotate(PI/2,axis=RIGHT)
+        self.add(grp_mat)
+        mat_r.match_y(im_mob_r)
+        mat_g.match_y(im_mob_g)
+        mat_b.match_y(im_mob_b)
+        # mat.match_height()
+
+        # animation
+        frame.to_default_state()
+        im_mob.center()
+        grp_rgb.center()
+        mat_r.match_width(im_mob_r)
+        im_mob_r.get_corner(UL)
+        mat_r.get_corner(UL)
+
+
+
+
+
 
 class rotation(InteractiveScene):
     def construct(self):
@@ -698,6 +776,12 @@ class numberspcae(InteractiveScene):
             self.play(ReplacementTransform(
                 VGroup(*grp_index(ax,grp,[x,1,1])),
                 VGroup(*grp_index(ax,grp,[x+1,1,1])),))
+
+        # text
+        text=TextCustom(en='Matrix',ch='矩阵')
+        text2=TextCustom(en='Matrix',ch='矩阵',font_en='WenCang',font_ch='WenCang')
+        VGroup(text,text2).arrange(RIGHT)
+        self.add(text,text2)
 
 
 
