@@ -2,16 +2,12 @@ from __future__ import annotations
 
 from functools import wraps
 
-import moderngl
 import numpy as np
-import operator as op
-import itertools as it
 
 from manimlib.constants import GREY_A, GREY_C, GREY_E
 from manimlib.constants import BLACK
 from manimlib.constants import DEFAULT_STROKE_WIDTH
-from manimlib.constants import DEGREES
-from manimlib.constants import JOINT_TYPE_MAP
+from manimlib.constants import DEG
 from manimlib.constants import ORIGIN, OUT
 from manimlib.constants import PI
 from manimlib.constants import TAU
@@ -35,10 +31,7 @@ from manimlib.utils.iterables import make_even
 from manimlib.utils.iterables import resize_array
 from manimlib.utils.iterables import resize_with_interpolation
 from manimlib.utils.iterables import resize_preserving_order
-from manimlib.utils.iterables import arrays_match
-from manimlib.utils.simple_functions import fdiv
 from manimlib.utils.space_ops import angle_between_vectors
-from manimlib.utils.space_ops import cross
 from manimlib.utils.space_ops import cross2d
 from manimlib.utils.space_ops import earclip_triangulation
 from manimlib.utils.space_ops import get_norm
@@ -49,7 +42,6 @@ from manimlib.utils.space_ops import rotation_between_vectors
 from manimlib.utils.space_ops import rotation_matrix_transpose
 from manimlib.utils.space_ops import poly_line_length
 from manimlib.utils.space_ops import z_to_vector
-from manimlib.shader_wrapper import ShaderWrapper
 from manimlib.shader_wrapper import VShaderWrapper
 
 from typing import TYPE_CHECKING
@@ -57,8 +49,8 @@ from typing import Generic, TypeVar, Iterable
 SubVmobjectType = TypeVar('SubVmobjectType', bound='VMobject')
 
 if TYPE_CHECKING:
-    from typing import Callable, Tuple, Any
-    from manimlib.typing import ManimColor, Vect3, Vect4, Vect3Array, Vect4Array, Self
+    from typing import Callable, Tuple, Any, Optional
+    from manimlib.typing import ManimColor, Vect3, Vect4, Vect3Array, Self
     from moderngl.context import Context
 
 DEFAULT_STROKE_COLOR = GREY_A
@@ -79,6 +71,12 @@ class VMobject(Mobject):
     make_smooth_after_applying_functions: bool = False
     # TODO, do we care about accounting for varying zoom levels?
     tolerance_for_point_equality: float = 1e-8
+    joint_type_map: dict = {
+        "no_joint": 0,
+        "auto": 1,
+        "bevel": 2,
+        "miter": 3,
+    }
 
     def __init__(
         self,
@@ -130,7 +128,7 @@ class VMobject(Mobject):
         super().init_uniforms()
         self.uniforms.update(
             anti_alias_width=self.anti_alias_width,
-            joint_type=JOINT_TYPE_MAP[self.joint_type],
+            joint_type=self.joint_type_map[self.joint_type],
             flat_stroke=float(self.flat_stroke),
             scale_stroke_with_zoom=float(self.scale_stroke_with_zoom)
         )
@@ -413,7 +411,7 @@ class VMobject(Mobject):
 
     def set_joint_type(self, joint_type: str, recurse: bool = True) -> Self:
         for mob in self.get_family(recurse):
-            mob.uniforms["joint_type"] = JOINT_TYPE_MAP[joint_type]
+            mob.uniforms["joint_type"] = self.joint_type_map[joint_type]
         return self
 
     def get_joint_type(self) -> float:
@@ -492,7 +490,7 @@ class VMobject(Mobject):
         v1 = handle1 - last
         v2 = anchor - handle2
         angle = angle_between_vectors(v1, v2)
-        if self.use_simple_quadratic_approx and angle < 45 * DEGREES:
+        if self.use_simple_quadratic_approx and angle < 45 * DEG:
             quad_approx = [last, find_intersection(last, v1, anchor, -v2), anchor]
         else:
             quad_approx = get_quadratic_approximation_of_cubic(
@@ -618,7 +616,7 @@ class VMobject(Mobject):
 
     def subdivide_sharp_curves(
         self,
-        angle_threshold: float = 30 * DEGREES,
+        angle_threshold: float = 30 * DEG,
         recurse: bool = True
     ) -> Self:
         def tuple_to_subdivisions(b0, b1, b2):
@@ -658,7 +656,7 @@ class VMobject(Mobject):
         self.make_smooth(approx=approx)
         return self
 
-    def is_smooth(self, angle_tol=1 * DEGREES) -> bool:
+    def is_smooth(self, angle_tol=1 * DEG) -> bool:
         angles = np.abs(self.get_joint_angles()[0::2])
         return (angles < angle_tol).all()
 

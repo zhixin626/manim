@@ -5,7 +5,6 @@ import os
 from pathlib import Path
 import re
 import tempfile
-import hashlib
 from functools import lru_cache
 
 import manimpango
@@ -13,7 +12,7 @@ import pygments
 import pygments.formatters
 import pygments.lexers
 
-from manimlib.config import get_global_config
+from manimlib.config import manim_config
 from manimlib.constants import DEFAULT_PIXEL_WIDTH, FRAME_WIDTH
 from manimlib.constants import NORMAL
 from manimlib.logger import log
@@ -76,36 +75,29 @@ def markup_to_svg(
         pango_width = line_width / FRAME_WIDTH * DEFAULT_PIXEL_WIDTH
 
     # Write the result to a temporary svg file, and return it's contents.
-    # TODO, better would be to have this not write to file at all
-    try:
-        with tempfile.NamedTemporaryFile(suffix='.svg', mode='r+',delete=False) as tmp:
-            tmp_path=tmp.name
-            manimpango.MarkupUtils.text2svg(
-                text=markup_str,
-                font="",                     # Already handled
-                slant="NORMAL",              # Already handled
-                weight="NORMAL",             # Already handled
-                size=1,                      # Already handled
-                _=0,                         # Empty parameter
-                disable_liga=False,
-                file_name=tmp.name,
-                START_X=0,
-                START_Y=0,
-                width=DEFAULT_CANVAS_WIDTH,
-                height=DEFAULT_CANVAS_HEIGHT,
-                justify=justify,
-                indent=indent,
-                line_spacing=None,           # Already handled
-                alignment=alignment,
-                pango_width=pango_width
-            )
-
-            # Read the contents
-            tmp.seek(0)
-            return tmp.read()
-    finally:
-        if tmp_path and os.path.exists(tmp_path):
-            os.remove(tmp_path)
+    temp_file = Path(tempfile.gettempdir(), hash_string(markup_str)).with_suffix(".svg")
+    manimpango.MarkupUtils.text2svg(
+        text=markup_str,
+        font="",                     # Already handled
+        slant="NORMAL",              # Already handled
+        weight="NORMAL",             # Already handled
+        size=1,                      # Already handled
+        _=0,                         # Empty parameter
+        disable_liga=False,
+        file_name=str(temp_file),
+        START_X=0,
+        START_Y=0,
+        width=DEFAULT_CANVAS_WIDTH,
+        height=DEFAULT_CANVAS_HEIGHT,
+        justify=justify,
+        indent=indent,
+        line_spacing=None,           # Already handled
+        alignment=alignment,
+        pango_width=pango_width
+    )
+    result = temp_file.read_text()
+    os.remove(temp_file)
+    return result
 
 
 class MarkupText(StringMobject):
@@ -161,14 +153,14 @@ class MarkupText(StringMobject):
         isolate: Selector = re.compile(r"\w+", re.U),
         **kwargs
     ):
-        default_style = get_global_config()["style"]
+        text_config = manim_config.text
         self.text = text
         self.font_size = font_size
         self.justify = justify
         self.indent = indent
-        self.alignment = alignment or default_style["text_alignment"]
+        self.alignment = alignment or text_config.alignment
         self.line_width = line_width
-        self.font = font or default_style["font"]
+        self.font = font or text_config.font
         self.slant = slant
         self.weight = weight
 

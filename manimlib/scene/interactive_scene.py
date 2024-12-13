@@ -7,11 +7,11 @@ from IPython.core.getipython import get_ipython
 from pyglet.window import key as PygletWindowKeys
 
 from manimlib.animation.fading import FadeIn
-from manimlib.constants import ARROW_SYMBOLS, CTRL_SYMBOL, DELETE_SYMBOL, SHIFT_SYMBOL
+from manimlib.config import manim_config
 from manimlib.constants import DL, DOWN, DR, LEFT, ORIGIN, RIGHT, UL, UP, UR
 from manimlib.constants import FRAME_WIDTH, FRAME_HEIGHT, SMALL_BUFF
 from manimlib.constants import PI
-from manimlib.constants import DEGREES
+from manimlib.constants import DEG
 from manimlib.constants import MANIM_COLORS, WHITE, GREY_A, GREY_C
 from manimlib.mobject.geometry import Line
 from manimlib.mobject.geometry import Rectangle
@@ -37,17 +37,25 @@ if TYPE_CHECKING:
     from manimlib.typing import Vect3
 
 
-SELECT_KEY = 's'
-UNSELECT_KEY = 'u'
-GRAB_KEY = 'g'
-X_GRAB_KEY = 'h'
-Y_GRAB_KEY = 'v'
+SELECT_KEY = manim_config.key_bindings.select
+UNSELECT_KEY = manim_config.key_bindings.unselect
+GRAB_KEY = manim_config.key_bindings.grab
+X_GRAB_KEY = manim_config.key_bindings.x_grab
+Y_GRAB_KEY = manim_config.key_bindings.y_grab
 GRAB_KEYS = [GRAB_KEY, X_GRAB_KEY, Y_GRAB_KEY]
-RESIZE_KEY = 't'
-COLOR_KEY = 'c'
-INFORMATION_KEY = 'i'
-CURSOR_KEY = 'k'
-COPY_FRAME_POSITION_KEY = 'p' 
+RESIZE_KEY = manim_config.key_bindings.resize  # TODO
+COLOR_KEY = manim_config.key_bindings.color
+INFORMATION_KEY = manim_config.key_bindings.information
+CURSOR_KEY = manim_config.key_bindings.cursor
+
+# For keyboard interactions
+
+ARROW_SYMBOLS: list[int] = [
+    PygletWindowKeys.LEFT,
+    PygletWindowKeys.UP,
+    PygletWindowKeys.RIGHT,
+    PygletWindowKeys.DOWN,
+]
 
 ALL_MODIFIERS = PygletWindowKeys.MOD_CTRL | PygletWindowKeys.MOD_COMMAND | PygletWindowKeys.MOD_SHIFT
 
@@ -460,12 +468,6 @@ class InteractiveScene(Scene):
             nudge *= 10
         self.selection.shift(nudge * vect)
 
-    def save_selection_to_file(self):
-        if len(self.selection) == 1:
-            self.save_mobject_to_file(self.selection[0])
-        else:
-            self.save_mobject_to_file(self.selection)
-
     # Key actions
     def on_key_press(self, symbol: int, modifiers: int) -> None:
         super().on_key_press(symbol, modifiers)
@@ -478,7 +480,7 @@ class InteractiveScene(Scene):
             self.prepare_grab()
         elif char == RESIZE_KEY and (modifiers & PygletWindowKeys.MOD_SHIFT):
             self.prepare_resizing(about_corner=((modifiers & PygletWindowKeys.MOD_SHIFT) > 0))
-        elif symbol == SHIFT_SYMBOL:
+        elif symbol == PygletWindowKeys.LSHIFT:
             if self.window.is_key_pressed(ord("t")):
                 self.prepare_resizing(about_corner=True)
         elif char == COLOR_KEY and (modifiers & ALL_MODIFIERS) == 0:
@@ -492,7 +494,7 @@ class InteractiveScene(Scene):
         elif char == "x" and (modifiers & (PygletWindowKeys.MOD_COMMAND | PygletWindowKeys.MOD_CTRL)):
             self.copy_selection()
             self.delete_selection()
-        elif symbol == DELETE_SYMBOL:
+        elif symbol == PygletWindowKeys.BACKSPACE:
             self.delete_selection()
         elif char == "a" and (modifiers & (PygletWindowKeys.MOD_COMMAND | PygletWindowKeys.MOD_CTRL)):
             self.clear_selection()
@@ -503,8 +505,6 @@ class InteractiveScene(Scene):
             self.ungroup_selection()
         elif char == "t" and (modifiers & (PygletWindowKeys.MOD_COMMAND | PygletWindowKeys.MOD_CTRL)):
             self.toggle_selection_mode()
-        elif char == "s" and (modifiers & (PygletWindowKeys.MOD_COMMAND | PygletWindowKeys.MOD_CTRL)):
-            self.save_selection_to_file()
         elif char == "d" and (modifiers & PygletWindowKeys.MOD_SHIFT):
             self.copy_frame_positioning()
         elif char == "c" and (modifiers & PygletWindowKeys.MOD_SHIFT):
@@ -535,7 +535,7 @@ class InteractiveScene(Scene):
             self.is_grabbing = False
         elif chr(symbol) == INFORMATION_KEY:
             self.display_information(False)
-        elif symbol == SHIFT_SYMBOL and self.window.is_key_pressed(ord(RESIZE_KEY)):
+        elif symbol == PygletWindowKeys.LSHIFT and self.window.is_key_pressed(ord(RESIZE_KEY)):
             self.prepare_resizing(about_corner=False)
 
     # Mouse actions
@@ -552,7 +552,7 @@ class InteractiveScene(Scene):
         if not hasattr(self, "scale_about_point"):
             return
         vect = point - self.scale_about_point
-        if self.window.is_key_pressed(CTRL_SYMBOL):
+        if self.window.is_key_pressed(PygletWindowKeys.LCTRL):
             for i in (0, 1):
                 scalar = vect[i] / self.scale_ref_vect[i]
                 self.selection.rescale_to_fit(
@@ -597,7 +597,7 @@ class InteractiveScene(Scene):
             self.handle_grabbing(point)
         elif self.window.is_key_pressed(ord(RESIZE_KEY)):
             self.handle_resizing(point)
-        elif self.window.is_key_pressed(ord(SELECT_KEY)) and self.window.is_key_pressed(SHIFT_SYMBOL):
+        elif self.window.is_key_pressed(ord(SELECT_KEY)) and self.window.is_key_pressed(PygletWindowKeys.LSHIFT):
             self.handle_sweeping_selection(point)
 
     def on_mouse_drag(
@@ -625,7 +625,7 @@ class InteractiveScene(Scene):
         angles = frame.get_euler_angles()
 
         call = f"reorient("
-        theta, phi, gamma = (angles / DEGREES).astype(int)
+        theta, phi, gamma = (angles / DEG).astype(int)
         call += f"{theta}, {phi}, {gamma}"
         if any(center != 0):
             call += f", {tuple(np.round(center, 2))}"

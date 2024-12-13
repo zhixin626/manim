@@ -6,7 +6,7 @@ import sys
 
 from manimlib.module_loader import ModuleLoader
 
-from manimlib.config import get_global_config
+from manimlib.config import manim_config
 from manimlib.logger import log
 from manimlib.scene.interactive_scene import InteractiveScene
 from manimlib.scene.scene import Scene
@@ -15,11 +15,12 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     Module = importlib.util.types.ModuleType
     from typing import Optional
+    from addict import Dict
 
 
 class BlankScene(InteractiveScene):
     def construct(self):
-        exec(get_global_config()["universal_import_line"])
+        exec(manim_config.universal_import_line)
         self.embed()
 
 
@@ -43,11 +44,7 @@ def prompt_user_for_choice(scene_classes):
         print(f"{str(idx).zfill(max_digits)}: {name}")
         name_to_class[name] = scene_class
     try:
-        user_input = input(
-            "\nThat module has multiple scenes, " + \
-            "which ones would you like to render?" + \
-            "\nScene Name or Number: "
-        )
+        user_input = input("\nSelect which scene to render (by name or number): ")
         return [
             name_to_class[split_str] if not split_str.isnumeric() else scene_classes[int(split_str) - 1]
             for split_str in user_input.replace(" ", "").split(",")
@@ -77,32 +74,32 @@ def compute_total_frames(scene_class, scene_config):
     pre_scene = scene_class(**pre_config)
     pre_scene.run()
     total_time = pre_scene.time - pre_scene.skip_time
-    return int(total_time * scene_config["camera_config"]["fps"])
+    return int(total_time * manim_config.camera.fps)
 
 
-def scene_from_class(scene_class, scene_config, run_config):
-    fw_config = scene_config["file_writer_config"]
-    if fw_config["write_to_movie"] and run_config["prerun"]:
-        fw_config["total_frames"] = compute_total_frames(scene_class, scene_config)
+def scene_from_class(scene_class, scene_config: Dict, run_config: Dict):
+    fw_config = manim_config.file_writer
+    if fw_config.write_to_movie and run_config.prerun:
+        scene_config.file_writer_config.total_frames = compute_total_frames(scene_class, scene_config)
     return scene_class(**scene_config)
 
 
-def get_scenes_to_render(all_scene_classes, scene_config, run_config):
-    if run_config["write_all"]:
-        return [sc(**scene_config) for sc in all_scene_classes]
+def note_missing_scenes(arg_names, module_names):
+    for name in arg_names:
+        if name not in module_names:
+            log.error(f"No scene named {name} found")
 
-    names_to_classes = {sc.__name__: sc for sc in all_scene_classes}
-    scene_names = run_config["scene_names"]
 
-    for name in set.difference(set(scene_names), names_to_classes):
-        log.error(f"No scene named {name} found")
-        scene_names.remove(name)
-
-    if scene_names:
-        classes_to_run = [names_to_classes[name] for name in scene_names]
-    elif len(all_scene_classes) == 1:
-        classes_to_run = [all_scene_classes[0]]
+def get_scenes_to_render(all_scene_classes: list, scene_config: Dict, run_config: Dict):
+    if run_config["write_all"] or len(all_scene_classes) == 1:
+        classes_to_run = all_scene_classes
     else:
+        name_to_class = {sc.__name__: sc for sc in all_scene_classes}
+        classes_to_run = [name_to_class.get(name) for name in run_config.scene_names]
+        classes_to_run = list(filter(lambda x: x, classes_to_run))  # Remove Nones
+        note_missing_scenes(run_config.scene_names, name_to_class.keys())
+
+    if len(classes_to_run) == 0:
         classes_to_run = prompt_user_for_choice(all_scene_classes)
 
     return [
@@ -111,7 +108,10 @@ def get_scenes_to_render(all_scene_classes, scene_config, run_config):
     ]
 
 
-def get_scene_classes_from_module(module):
+def get_scene_classes(module: Optional[Module]):
+    if module is None:
+        # If no module was passed in, just play the blank scene
+        return [BlankScene]
     if hasattr(module, "SCENES_IN_ORDER"):
         return module.SCENES_IN_ORDER
     else:
@@ -125,14 +125,21 @@ def get_scene_classes_from_module(module):
 
 
 def get_indent(code_lines: list[str], line_number: int) -> str:
-    for line in code_lines[line_number - 1::-1]:
-        if len(line.strip()) == 0:
-            continue
-        n_spaces = len(line) - len(line.lstrip())
-        if line.endswith(":"):
-            n_spaces += 4
-        return n_spaces * " "
-    return ""
+    """
+    Find the indent associated with a given line of python code,
+    as a string of spaces
+    """
+    # Find most recent non-empty line
+    try:
+        line = next(filter(lambda line: line.strip(), code_lines[line_number - 1::-1]))
+    except StopIteration:
+        return ""
+
+    # Either return its leading spaces, or add for if it ends with colon
+    n_spaces = len(line) - len(line.lstrip())
+    if line.endswith(":"):
+        n_spaces += 4
+    return n_spaces * " "
 
 
 def insert_embed_line_to_module(module: Module, line_number: int):
@@ -149,27 +156,23 @@ def insert_embed_line_to_module(module: Module, line_number: int):
     lines.insert(line_number, indent + "self.embed()")
     new_code = "\n".join(lines)
 
+    # Execute the code, which presumably redefines the user's
+    # scene to include this embed line, within the relevant module.
     code_object = compile(new_code, module.__name__, 'exec')
     exec(code_object, module.__dict__)
-    return module
 
 
-def get_scene_module(file_name: Optional[str], embed_line: Optional[int], is_reload: bool = False) -> Module:
+def get_module(file_name: Optional[str], embed_line: Optional[int], is_reload: bool = False) -> Module:
     module = ModuleLoader.get_module(file_name, is_reload)
     if embed_line:
         insert_embed_line_to_module(module, embed_line)
     return module
 
 
-def main(scene_config, run_config):
-    module = get_scene_module(
-        run_config["file_name"],
-        run_config["embed_line"],
-        run_config["is_reload"]
-    )
-    if module is None:
-        # If no module was passed in, just play the blank scene
-        return [BlankScene(**scene_config)]
-
-    all_scene_classes = get_scene_classes_from_module(module)
-    return get_scenes_to_render(all_scene_classes, scene_config, run_config)
+def main(scene_config: Dict, run_config: Dict):
+    module = get_module(run_config.file_name, run_config.embed_line, run_config.is_reload)
+    all_scene_classes = get_scene_classes(module)
+    scenes = get_scenes_to_render(all_scene_classes, scene_config, run_config)
+    if len(scenes) == 0:
+        print("No scenes found to run")
+    return scenes
