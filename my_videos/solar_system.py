@@ -10,6 +10,7 @@ def get_orthogonal_proj_matrix(A):
 class image(InteractiveScene):
     def construct(self):
         # init
+        # state=self.checkpoint_states
         frame=self.frame
         # start
         image=Image.open('kun.png')
@@ -45,7 +46,7 @@ class image(InteractiveScene):
         im_mob_r=ImageMobject('r.png')
         im_mob_g=ImageMobject('g.png')
         im_mob_b=ImageMobject('b.png')
-        grp_rgb=Group(im_mob_r,im_mob_g,im_mob_b).arrange(OUT,buff=1)
+        grp_rgb=Group(im_mob_r,im_mob_g,im_mob_b).arrange(OUT,buff=3)
         grp_rgb.rotate(PI/2,axis=RIGHT)
         grp_rgb.center()
         im_mob_r.apply_depth_test()
@@ -54,8 +55,8 @@ class image(InteractiveScene):
         grp_rgb.set_opacity(0.5)
         im_mob.scale(2)
         grp_rgb.scale(2)
-        image_grp=Group(grp_rgb,im_mob).arrange(RIGHT)
-        self.add(image_grp)
+        # image_grp=Group(grp_rgb,im_mob).arrange(RIGHT)
+        self.add(grp_rgb)
         frame.reorient(25, 64, 0, (0.38, 1.45, 0.72), 13.31)
 
         # Matrix
