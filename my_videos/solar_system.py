@@ -756,12 +756,12 @@ class numberspcae(InteractiveScene):
         # (x,y,z)=(1,1,1)
         # x-x_min,y-y_min,z-z_min
         def grp_index(ax,grp,target_xyz):
-            x=target_xyz[0]
-            y=target_xyz[1]
-            z=target_xyz[2]
             x_min=ax.x_axis.x_min
             y_min=ax.y_axis.x_min            
             z_min=ax.z_axis.x_min
+            x=target_xyz[0]
+            y=target_xyz[1]
+            z=target_xyz[2]
             z_index=int(z-z_min)
             x_index=int(x-x_min)
             y_index=int(y-y_min)

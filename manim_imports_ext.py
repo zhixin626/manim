@@ -1,5 +1,13 @@
 from manimlib import *
-# customs
+# custom functions
+def get_current_frame_rectangle(frame,**kwargs):
+    rec=Rectangle(
+        width=frame.get_shape()[0],height=frame.get_shape()[1],
+        stroke_opacity=0,fill_color=WHITE,fill_opacity=0.3,**kwargs)
+    rec.apply_matrix(frame.get_orientation().as_matrix())
+    rec.move_to(frame.get_center())
+    return rec
+# custom class
 class TextCustom(VGroup):
     def __init__(self, 
         en=None                   ,ch=None,
@@ -123,8 +131,8 @@ class ThreeDAxesCustom(ThreeDAxes):
     def add_coordinate_labels(self,
         x_values=None,
         y_values=None,
-        z_values=None,
-        excluding=[0],font_size=18,**kwargs) :
+        excluding=[0],
+        z_values=None,font_size=18,**kwargs) :
         super().add_coordinate_labels(
             x_values=x_values,
             y_values=y_values,
@@ -138,18 +146,11 @@ class ThreeDAxesCustom(ThreeDAxes):
         self.coordinate_labels.set_color(YELLOW)
         # self.set_zero_opacity()
         return self.coordinate_labels
-    def set_zero_opacity(self,opacity=0):
-        x_grp,y_grp,z_grp=self.coordinate_labels
-        x_correct_num=-self.x_axis.x_min
-        y_correct_num=-self.y_axis.x_min
-        z_correct_num=-self.z_axis.x_min
-        x_grp[int(0+x_correct_num)].set_opacity(opacity)
-        y_grp[int(0+y_correct_num)].set_opacity(opacity)
-        z_grp[int(0+z_correct_num)].set_opacity(opacity)
     def add_axis_labels(self,*args,**kwargs):
         super().add_axis_labels(*args,**kwargs,font_size=70,buff=0.3)
         # axes labels (x,y,z) color
         self.axis_labels.set_color(YELLOW)
+        
 class NumberPlaneCustom(NumberPlane):
     default_axis_config: dict = dict(
         stroke_color=PURPLE_A,
