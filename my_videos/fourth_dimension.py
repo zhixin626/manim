@@ -1,4 +1,3 @@
-from pickle import NONE
 from manim_imports_ext import *
 import numpy as np
 from scipy.spatial.transform import Rotation
@@ -81,19 +80,35 @@ class axes4d(InteractiveScene):
         self.add(ax)
         ax.add_coordinate_labels()
         ax.add_axis_labels()
-
-
-        rec=get_current_frame_rectangle(frame)
-        self.add(rec)
-        ax.make_xyz_flat(frame)
         # proj
-        ax.save_state()
-        self.play(ax.animate.make_xyz_flat())
+        self.play(frame.animate.reorient(19, 28, 0, (0,0,0), 8.00))
+        frame1=frame.copy()
+    
+        # ax.save_state()
+        self.play(ax.animate.make_xyz_flat(frame))
+        dot=Dot(ax.c2p(0,0,0))
+        self.add(dot)
 
-        frame.increment_gamma(0.1)
-        self.play(frame.animate.set_orientation(ax.frame.get_orientation()))
-        self.play(frame.animate.center())
+        
+        # w axis
+        self.play(frame.animate.reorient(-51, 87, 0, (0.18, 0.16, 0.04), 14))
+        ax.init_w_axis(frame1)
+        self.play(Write(ax.w_axis))
+        self.play(Write(ax.w_numbers))
+        self.play(Write(ax.w_label))
+        self.play(frame.animate.increment_gamma(0.5))
+        # restore
         self.play(ax.animate.restore())
+        # mat
+        mat=MatrixCustom(np.array([[1,0,0],[0,1,0],[0,0,1]]))
+        mat.fix_in_frame()
+        mat_comb=mat.get_linear_combination()
+        mat_comb.fix_in_frame()
+        arrows=mat.get_column_arrows(ax)
+        self.add(mat)
+        self.add(mat_comb)
+        self.add(arrows)
+
 class FourDAxesCustom(ThreeDAxesCustom):
     def __init__(
         self,
@@ -105,14 +120,9 @@ class FourDAxesCustom(ThreeDAxesCustom):
         show_w_axis=False,
         **kwargs):
         super().__init__(x_range, y_range, z_range,**kwargs)
-        self.w_range=w_range
-        if frame is None:
-            rot=Rotation.from_quat(
-                np.array([0.24558994, 0.04225083, 0.16419859, 0.95443139]))
-            self.frame=CameraFrame().set_orientation(rot)
-        else:self.frame=frame
+        self.w_range=w_range   
         if show_w_axis:
-            self.init_w_axis(self.frame)
+            self.init_w_axis(frame)
             self.add_w_axis()
     def get_projection_plane(self):
         rec=Rectangle(width=FRAME_WIDTH,
@@ -123,6 +133,14 @@ class FourDAxesCustom(ThreeDAxesCustom):
         rec.move_to(self.frame.get_center())
         rec.set_height(self.frame.get_height())
         return rec
+    def make_xyz_flat(self,frame=None):
+        if frame is None:
+            frame=self.frame
+        else : frame=frame
+        def projection_wrapper(point):
+            return FourDAxesCustom.get_projection_point(point,frame)
+        self[0:3].apply_function(projection_wrapper)
+        return self
     # overrides
     def add_coordinate_labels(self, 
         x_values=None, 
@@ -149,19 +167,15 @@ class FourDAxesCustom(ThreeDAxesCustom):
     def add_w_axis_numbers(self):
         self.w_axis.add(self.w_numbers)
         self.w_axis.numbers=self.w_numbers
-    def make_xyz_flat(self,frame=None,include_rectangle=False):
-        if frame is None:
-            frame=self.frame
-        else : frame=frame
-        fc=frame.get_center()
-        cp=frame.get_implied_camera_location()
-        def projection_wrapper(point):
-            return FourDAxesCustom.get_projection_point(point,fc,cp)
-        self[0:3].apply_function(projection_wrapper)
-        return self
 
     def init_w_axis(self,frame):
         # w-axis
+        if frame is None:
+            rot=Rotation.from_quat(
+                np.array([0.24558994, 0.04225083, 0.16419859, 0.95443139]))
+            self.frame=CameraFrame().set_orientation(rot)
+        else:
+            self.frame=frame
         w_axis =  NumberLine(self.w_range)
         w_axis.shift(w_axis.n2p(0))
         w_axis.ticks.remove(w_axis.ticks[int(w_axis.x_max)])
@@ -189,9 +203,12 @@ class FourDAxesCustom(ThreeDAxesCustom):
         self.w_axis=w_axis
         self.w_label=w_label
         self.w_numbers=w_numbers
+
     @staticmethod
-    def get_projection_point(point,frame_center,camera_postion): # perspective 
-        #convert list to numpy column vector 
+    def get_projection_point(point,frame): # perspective 
+        #convert list to numpy column vector
+        camera_postion=frame.get_implied_camera_location()
+        frame_center=frame.get_center()
         frame_center=np.array([frame_center]).T
         point=np.array([point]).T
         camera_postion=np.array([camera_postion]).T
@@ -219,34 +236,4 @@ class FourDAxesCustom(ThreeDAxesCustom):
         x,y,z=FourDAxesCustom.get_xyz(camera_postion)
         B=np.array([x,y,z]).T
         return B    
-
-
-class tex_in_3D(InteractiveScene):
-    def construct(self):
-        # start
-        ax=ThreeDAxes()
-        tex=Tex("x")
-        tex2=Tex("x").set_color(RED).shift(RIGHT)
-        frame=self.frame
-        frame.reorient(0, 0, 0, (0,0,0), 2)
-        self.add(ax,tex,tex2)
-        
-
-        # apply matrix
-        frame.reorient(50, 30, 0)
-        camera_position=frame.get_implied_camera_location()
-        mat=get_rotation_matrix(camera_position)
-        print("mat is {}".format(mat))
-        self.play(frame.animate.reorient(-42, 60, 0, (0,0,0), 2.83),run_time=2)
-        self.play(tex.animate.apply_matrix(mat)) #也许和底层的渲染方式有关把？？
-
-        # use euler_angles
-        angles=Rotation.from_matrix(mat).as_euler('xyz')
-        self.play(tex2.animate.rotate(angles[0],axis=RIGHT))
-        self.play(tex2.animate.rotate(angles[1],axis=UP))
-        self.play(tex2.animate.rotate(angles[2],axis=OUT))
-
-        # make smooth
-        self.play(tex.animate.make_smooth())
-
         

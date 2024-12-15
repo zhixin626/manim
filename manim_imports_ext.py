@@ -7,6 +7,14 @@ def get_current_frame_rectangle(frame,**kwargs):
     rec.apply_matrix(frame.get_orientation().as_matrix())
     rec.move_to(frame.get_center())
     return rec
+def get_current_frame_surface(frame,**kwargs):
+    frame_width_half=np.round(frame.get_width()/2,2)
+    frame_height_half=np.round(frame.get_height()/2,2)
+    sf=Surface(u_range=(-frame_width_half,frame_width_half),
+        v_range=(-frame_height_half,frame_height_half),opacity=0.5,**kwargs)
+    sf.apply_matrix(frame.get_inv_view_matrix()[:3,:3])
+    sf.move_to(frame.get_center())
+    return sf
 # custom class
 class TextCustom(VGroup):
     def __init__(self, 
