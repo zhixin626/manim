@@ -5,9 +5,9 @@ text:
   font: "Mongolian Baiti"
   alignment: "LEFT"
 directories:
-  base: ""
+  base: "manim_dir"
   subdirs:
-    output: "dir"
+    output: "outputs"
     raster_images: "raster_images"
     vector_images: "vector_images"
     sounds: "sounds"

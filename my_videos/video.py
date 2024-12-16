@@ -3,13 +3,13 @@ class starting(InteractiveScene):
     def construct(self):
         # init
         frame=self.frame
-        # start
+        # write title
         title=TextCustom(en='Data Warehouse',ch='数据仓库')
         title.scale(1.5)
-        # write title
-        self.play(Write(title.en),Write(title.ch))
-        self.play(FadeOut(title))
-        # equation
+        self.play(FadeIn(title.en,shift=RIGHT),FadeIn(title.ch,shift=LEFT))
+        self.wait()
+        self.play(FadeOut(title.en,shift=RIGHT),FadeOut(title.ch,shift=LEFT))
+        # equation_init
         tex_mat=Tex(R"""
             \left[\enspace
             \begin{matrix}
@@ -50,7 +50,7 @@ class starting(InteractiveScene):
         saved_state=tex_mat_aug[22:24].copy()           # bracket original position
         tex_mat_aug[22:24].move_to(tex_mat_aug[11:17])  # move bracket
         
-        # animation for equations
+        # matrix and augmented matrix
         kw=dict(path_arc=30*DEGREES,run_time=1)
         tex_eqn.save_state()
         self.play(Write(tex_eqn.center().scale(1.3)))
@@ -86,13 +86,14 @@ class starting(InteractiveScene):
         self.play(FadeOut(tex_eqn),VGroup(tex_mat_aug,text2).animate.center())
         self.play(LaggedStartMap(FadeOut,VGroup(text2.en,text2.ch,tex_mat_aug),shift=RIGHT*2))
 
-        # image part
+        # fade in image
         ax=ThreeDAxesCustom()
         ax.add_axis_labels()
-        im=ImageMobject('resized_image.jpg')
-        im_r=ImageMobject('r.png')
-        im_g=ImageMobject('g.png')
-        im_b=ImageMobject('b.png')
+        # split_rgb_channels("kun",save=True)
+        im=ImageMobject('kun.png')
+        im_r=ImageMobject('red_channel.jpg')
+        im_g=ImageMobject('green_channel.jpg')
+        im_b=ImageMobject('blue_channel.jpg')
         im_grp=Group(im_r,im_g,im_b)
         positions=im_grp.copy().arrange(RIGHT)
         im_r.shift(LEFT*2)
@@ -101,8 +102,8 @@ class starting(InteractiveScene):
         im_g.rotate(-PI/4,axis=UP)
         im_b.rotate(-PI/4,axis=UP)
         
-        for ima in im_grp:
-            ima.apply_depth_test().set_opacity(0.5)
+        for subim in im_grp:
+            subim.apply_depth_test().set_opacity(0.5)
         
         self.play(FadeIn(im),rate_func=linear)
         self.play(im.animate.rotate(-PI/4,axis=UP))
@@ -113,13 +114,13 @@ class starting(InteractiveScene):
             im_g.animate.rotate(PI/4,axis=UP).move_to(positions[1]),
             im_b.animate.rotate(PI/4,axis=UP).move_to(positions[2])],lag_ratio=0.1))
 
-        # add_image_matrix
-        image_r=Image.open('r.png')
-        image_g=Image.open('g.png')
-        image_b=Image.open('b.png')
-        r_arr=np.array(image_r.getdata())[:,0].reshape(50,50)
-        g_arr=np.array(image_g.getdata())[:,1].reshape(50,50)
-        b_arr=np.array(image_b.getdata())[:,2].reshape(50,50)
+        # image_matrix
+        image_r=Image.open(get_full_raster_image_path('red_channel.jpg'))
+        image_g=Image.open(get_full_raster_image_path('green_channel.jpg'))
+        image_b=Image.open(get_full_raster_image_path('blue_channel.jpg'))
+        r_arr=np.array(image_r)[:,:,0]
+        g_arr=np.array(image_g)[:,:,1]
+        b_arr=np.array(image_b)[:,:,2]
         mat_r=Matrix(r_arr[:15,:10],ellipses_col=9,ellipses_row=14)
         mat_g=Matrix(g_arr[:15,:10],ellipses_col=9,ellipses_row=14)
         mat_b=Matrix(b_arr[:15,:10],ellipses_col=9,ellipses_row=14)
@@ -129,20 +130,25 @@ class starting(InteractiveScene):
         mat_b.move_to(im_b).match_width(im_r).set_color("#6666FF")
         
         self.play(LaggedStart(
-            [FadeTransform(im_r,mat_r),
-            FadeTransform(im_g,mat_g),
-            FadeTransform(im_b,mat_b)],lag_ratio=0.5))
+                im_r.animate.set_opacity(0.3),
+                Write(mat_r),
+                im_g.animate.set_opacity(0.3),
+                Write(mat_g),
+                im_b.animate.set_opacity(0.3),
+                Write(mat_b),run_time=2
+            ))
         self.wait()
-        self.play(FadeOut(mat_grp),run_time=1)
+        self.play(LaggedStartMap(FadeOut,Group(im_r,im_g,im_b),shift=RIGHT),
+            LaggedStartMap(FadeOut,VGroup(mat_r,mat_g,mat_b),shift=LEFT))
 
-        # Builder of Spaces
+        # 2. Builder of Spaces---text
         title2=TextCustom(en='Builder of Spaces',ch='空间建构师')
         title2.scale(1.5)
-        # self.add(title2)
-        self.play(Write(title2.en),Write(title2.ch))
-        self.play(FadeOut(title2))
+        self.play(FadeIn(title2.en,shift=RIGHT),FadeIn(title2.ch,shift=LEFT))
+        self.wait()
+        self.play(FadeOut(title2.en,shift=RIGHT),FadeOut(title2.ch,shift=LEFT))
 
-        # 2d space
+        # 2d matrix --- rank
         mat2d=MatrixCustom(np.array([[1,0],[0,1]]))
         ax=ThreeDAxesCustom()
         ax.add_coordinate_labels()
@@ -150,12 +156,32 @@ class starting(InteractiveScene):
         comb2d=mat2d.get_linear_combination()
         arrow1,arrow2=mat2d.get_column_arrows(ax)
         change_parts=mat2d.get_changeable_parts()
-
-        # 2d animation
         mat2d.save_state()
         mat2d.center().scale(2)
         self.play(Write(mat2d))
-        self.play(mat2d.animate.restore())
+        text=TextCustom(en="Rank",ch="秩")
+        tex=Tex(R"=")
+        number=DecimalNumber(1,num_decimal_places=0)
+        number.set_color(mat2d.color_palette[0])
+        number.scale(1.5)
+        tex.scale(1.5)
+        text.next_to(mat2d,RIGHT)
+        tex.next_to(text,RIGHT)
+        number.always.next_to(tex,RIGHT)
+        rank_grp=VGroup(text,tex)
+        number_copy=DecimalNumber(1,num_decimal_places=0,include_sign=True)
+        number_copy.move_to(tex)
+        number_copy.match_style(number)
+        self.play(LaggedStartMap(Write,VGroup(text,tex)))
+        self.play(VGroup(mat2d,rank_grp).animate.arrange(RIGHT,buff=1))
+        self.play(TransformFromCopy(mat2d.get_column(0),number,path_arc=-3))
+        self.play(TransformFromCopy2(mat2d.get_column(1),number_copy,path_arc=-3),
+            number.animate.set_value(2))        
+        self.wait()
+        self.play(LaggedStartMap(FadeOut,VGroup(text,tex,number),shift=RIGHT*2),
+            mat2d.animate.restore())
+
+        # 2d comb ; grow arrow 
         animations=[AnimationGroup(TransformFromCopy(mat2d.brackets,
                 mat2d.vector_matrices[0].brackets,path_arc=1),
             TransformFromCopy(mat2d.get_column(0),
@@ -164,12 +190,11 @@ class starting(InteractiveScene):
                 mat2d.vector_matrices[1].brackets,path_arc=1),
             TransformFromCopy(mat2d.get_column(1),
                 mat2d.vector_matrices[1].get_column(0),path_arc=1))]
-        self.play(LaggedStart(*animations,lag_ratio=0.5))
+        self.play(LaggedStart(*animations,lag_ratio=0.7))
         self.play(Write(mat2d.parts),run_time=2)
         ax.x_axis.set_opacity(0.5)
         ax.y_axis.set_opacity(0.5)
         self.play(Write(ax.x_axis),Write(ax.y_axis))
-        # self.play(TransformFromCopy(mat2d.vector_matrices[0].get_column(0),arrow1))
         self.play(LaggedStart(
          [TransformFromCopy2(mat2d.vector_matrices[0].elements[0],ax.x_axis.numbers[6].copy()),
          ShrinkToPoint(mat2d.vector_matrices[0].elements[1].copy(),point=ax.c2p(0,0,0))],
@@ -181,7 +206,7 @@ class starting(InteractiveScene):
          ,lag_ratio=0.5))
         self.play(GrowArrow(arrow2))
 
-        # span
+        # span 2d plane
         nbp=NumberPlaneCustom()
         arrow3=get_added_arrow(arrow1,arrow2,axis=ax)
         changeable_parts=mat2d.get_changeable_parts()
@@ -232,13 +257,15 @@ class starting(InteractiveScene):
             VGroup(mat2d.vector_matrices,changeable_parts),shift=RIGHT*2),
                 LaggedStartMap(FadeOut,
             VGroup(ax.x_axis,ax.y_axis,nbp,mat2d),shift=LEFT*2))
+
         # 3d text
         text=TextCustom(en="Three-dimensional Space",
             ch="三维空间")
         self.play(FadeIn(text.en,shift=RIGHT),FadeIn(text.ch,shift=LEFT))
         self.wait()
         self.play(FadeOut(text.en,shift=RIGHT),FadeOut(text.ch,shift=LEFT))
-        # mat
+
+        # mat 3d ---- rank
         mat3d=MatrixCustom(np.array([[1,0,0],[0,1,0],[0,0,1]]))
         comb3d=mat3d.get_linear_combination()
         mat3d.scale(0.7,about_point=mat3d.get_corner(UL))
@@ -270,7 +297,8 @@ class starting(InteractiveScene):
         self.wait()
         self.play(LaggedStartMap(FadeOut,VGroup(text,tex,number),shift=RIGHT*2),
             mat3d.animate.restore())
-        # mat_comb
+
+        # 3d mat_comb
         animations=[AnimationGroup(TransformFromCopy(mat3d.brackets,
                 mat3d.vector_matrices[0].brackets,path_arc=1),
             TransformFromCopy(mat3d.get_column(0),
@@ -285,7 +313,8 @@ class starting(InteractiveScene):
                 mat3d.vector_matrices[2].get_column(0),path_arc=1))]
         self.play(LaggedStart(*animations,lag_ratio=0.5))
         self.play(Write(mat3d.parts),run_time=2)
-        # change
+
+        # write three d axis
         changeable_parts=mat3d.get_changeable_parts(font_size=25)
         changeable_parts.fix_in_frame()
         mat3d.fix_in_frame()
@@ -299,7 +328,8 @@ class starting(InteractiveScene):
         self.play(Write(ax),frame.animate.reorient(16, 30, 0, (0.41, 0.41, 0.11), 8.00))
         arrow1,arrow2,arrow3=mat3d.get_column_arrows(ax)
         self.play(frame.animate.reorient(15, 29, 0, (0.49, 0.17, -0.03), 4.55))
-        # grow arrow
+
+        # grow 3 arrows
         zero=Tex('0').move_to(ax.c2p(0,0,0)).scale(0.1)
         self.play(TransformFromCopy2(
                 mat3d.vector_matrices[0].elements[0],ax.x_axis.numbers[6]),
@@ -316,7 +346,8 @@ class starting(InteractiveScene):
             TransformFromCopy2(mat3d.vector_matrices[2].elements[1],zero),
             TransformFromCopy2(mat3d.vector_matrices[2].elements[2],ax.z_axis.numbers[4]))
         self.play(GrowArrow(arrow3))
-        # changepart
+
+        # indicate;get added arrow
         mat3d.parts.fix_in_frame()
         self.play(*map(FlashAround,mat3d.parts))
         self.play(ReplacementTransform(mat3d.parts,changeable_parts))
@@ -457,7 +488,7 @@ class starting(InteractiveScene):
         self.wait()
         self.play(FadeOut(text.en,shift=RIGHT),FadeOut(text.ch,shift=LEFT))
 
-        # 4d_init
+        # 4d_rank
         mat4d=MatrixCustom(np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]))
         mat4d.fix_in_frame()
         comb4d=mat4d.get_linear_combination()
@@ -496,7 +527,8 @@ class starting(InteractiveScene):
         self.wait()
         self.play(LaggedStartMap(FadeOut,VGroup(text,tex,number),shift=RIGHT*2),
             mat4d.animate.restore())
-        # 4d comb
+
+        # show 4d comb
         animations=[AnimationGroup(TransformFromCopy(mat4d.brackets,
                 mat4d.vector_matrices[0].brackets,path_arc=1),
             TransformFromCopy(mat4d.get_column(0),
@@ -515,6 +547,234 @@ class starting(InteractiveScene):
                 mat4d.vector_matrices[3].get_column(0),path_arc=1))]
         self.play(LaggedStart(*animations,lag_ratio=0.5))
         self.play(Write(mat4d.parts),run_time=2)
+        
+        # write 4d axis
+        ax=FourDAxesCustom(show_w_axis=True)
+        ax.add_coordinate_labels()
+        ax.add_axis_labels()
+        ax.set_opacity(0.5)
+        arrow1,arrow2,arrow3,arrow4=mat4d.get_column_arrows(ax)
+        arrow4.set_perpendicular_to_camera(ax.frame)
+        self.play(LaggedStartMap(Write,VGroup(ax.x_axis,ax.y_axis,ax.z_axis)),
+            frame.animate.set_orientation(ax.frame.get_orientation()))
+
+        # grow arrow 4d(1st 2nd 3rd arrows)
+        zero=Tex('0').move_to(ax.c2p_4d(0,0,0,0)).scale(0.1)
+        frame.add_ambient_rotation(angular_speed=2 * DEG)
+        self.play(TransformFromCopy2(
+                mat4d.vector_matrices[0].elements[0],ax.x_axis.numbers[6]),
+            TransformFromCopy2(mat4d.vector_matrices[0].elements[1],zero),
+            TransformFromCopy2(mat4d.vector_matrices[0].elements[2],zero),
+            TransformFromCopy2(mat4d.vector_matrices[0].elements[3],zero),
+            mat4d.parts[0].animate.set_opacity(0.3),
+            mat4d.vector_matrices[0].animate.set_opacity(0.3),)
+        self.play(GrowArrow(arrow1))
+        self.play(TransformFromCopy2(
+                mat4d.vector_matrices[1].elements[0],zero),
+            TransformFromCopy2(mat4d.vector_matrices[1].elements[1],ax.y_axis.numbers[3]),
+            TransformFromCopy2(mat4d.vector_matrices[1].elements[2],zero),
+            TransformFromCopy2(mat4d.vector_matrices[1].elements[3],zero),
+            mat4d.parts[1].animate.set_opacity(0.3),
+            mat4d.vector_matrices[1].animate.set_opacity(0.3),)
+        self.play(GrowArrow(arrow2))
+        self.play(TransformFromCopy2(
+                mat4d.vector_matrices[2].elements[0],zero),
+            TransformFromCopy2(mat4d.vector_matrices[2].elements[1],zero),
+            TransformFromCopy2(mat4d.vector_matrices[2].elements[2],ax.z_axis.numbers[4]),
+            TransformFromCopy2(mat4d.vector_matrices[2].elements[3],zero),
+            mat4d.parts[2].animate.set_opacity(0.3),
+            mat4d.vector_matrices[2].animate.set_opacity(0.3),)
+        self.play(GrowArrow(arrow3))
+
+        # question ?
+        tex=Tex('?')
+        tex.fix_in_frame()
+        tex.scale(3)
+        tex.match_color(mat4d.vector_matrices[3])
+        tex.next_to(mat4d.vector_matrices[3],DOWN,buff=0.5)
+        tex_3d=Tex(R"3D")
+        tex_3d.scale(2)
+        tex_3d.to_corner(DL)
+        tex_3d_number=tex_3d.make_number_changeable('3')
+        tex_3d.fix_in_frame()
+        tex_3d_number.fix_in_frame()   
+        self.play(LaggedStart(Write(tex),
+            FlashAround(VGroup(mat4d.vector_matrices[3],mat4d.parts[3]),run_time=2),
+            lag_ratio=0.02))
+        self.play(FadeOut(tex,shift=RIGHT))
+        frame.clear_updaters()
+        self.play(frame.animate.set_orientation(ax.frame.get_orientation()))
+        sf=get_current_frame_surface(frame)
+        sf.set_opacity(0.3)
+        self.play(ShowCreation(sf),Write(tex_3d))
+        for axis in VGroup(ax.x_axis,ax.y_axis,ax.z_axis):
+            axis.save_state()
+        ax.make_xyz_flat()
+        for arrow in VGroup(arrow1,arrow2,arrow3):
+            arrow.save_state()
+            arrow.apply_function(ax.projection_function)
+        self.wait(2)
+
+        # rotation to 4d
+        frame.save_state()
+        rotation_mat=FourDAxesCustom.get_rotation_matrix(frame.get_implied_camera_location())
+        self.play(Write(ax.w_axis),
+            frame.animate.set_orientation(Rotation.from_matrix(rotation_mat)),
+            tex_3d_number.animate.set_value(4),
+            run_time=3)
+        self.wait()
+        self.play(frame.animate.rotate(30*DEGREES,axis=ax.z_axis.get_vector()),)
+        self.play(frame.animate.scale(0.6))
+        # grow 4th arrow
+        self.play(TransformFromCopy2(
+                mat4d.vector_matrices[3].elements[0],zero),
+            TransformFromCopy2(mat4d.vector_matrices[3].elements[1],zero),
+            TransformFromCopy2(mat4d.vector_matrices[3].elements[2],zero),
+            TransformFromCopy2(mat4d.vector_matrices[3].elements[3],ax.w_axis.numbers[6]),
+            mat4d.parts[3].animate.set_opacity(0.3),
+            mat4d.vector_matrices[3].animate.set_opacity(0.3),)
+        self.play(GrowArrow(arrow4))
+        self.play(frame.animate.restore())
+
+        # go back to 3d
+        self.play(LaggedStartMap(FadeOut,Group(sf,ax.w_axis,arrow4)),tex_3d_number.animate.set_value(3))
+        restore_grp=VGroup(ax.x_axis,ax.y_axis,ax.z_axis,arrow1,arrow2,arrow3)
+        for sth in restore_grp:
+            sth.restore()
+        frame.add_ambient_rotation(angular_speed=-8 * DEG)
+        self.play(frame.animate.reorient(19, 28, 0, (0,0,0), 3.93),)
+        self.wait(4)
+        
+        # flash around
+        fadeout_grp=Group(sf,ax.w_axis,arrow4)
+        apply_grp=VGroup(arrow1,arrow2,arrow3,ax.x_axis,ax.y_axis,ax.z_axis)
+        self.play(comb4d.animate.set_opacity(1))
+        mat4d.parts.fix_in_frame()
+        self.play(LaggedStartMap(FlashAround,VGroup(*mat4d.parts)))
+        self.play(ReplacementTransform(mat4d.parts,changeable_parts))
+        frame.clear_updaters()
+
+        # add the first three arrows
+        added_arrow=get_added_arrow(arrow1,arrow2,arrow3,axis=ax.ghost)
+        arrow2copy=arrow2.copy().set_opacity(0.5)
+        self.play(frame.animate.reorient(34, 66, 0, (0.41, 0.3, 0.32), 3.53))
+        self.play(arrow2copy.animate.shift(arrow1.get_vector()))
+        arrow3copy=arrow3.copy().set_opacity(0.5)
+        self.play(arrow3copy.animate.shift(arrow1.get_vector()),run_time=0.5,rate_func=linear)
+        self.play(arrow3copy.animate.shift(arrow2.get_vector()),run_time=0.5,rate_func=linear)
+        self.play(GrowArrow(added_arrow),run_time=0.5)    
+        self.play(LaggedStartMap(FadeOut,VGroup(arrow2copy,arrow3copy)),
+            frame.animate.restore(),
+            VGroup(changeable_parts[0:3],mat4d.vector_matrices[0:3]).animate.set_opacity(0.5))
+        
+        # go to 4d 
+        self.play(FadeIn(sf),tex_3d_number.animate.set_value(4))
+        apply_grp.add(added_arrow)
+        for sth in apply_grp:
+            sth.save_state()
+            sth.apply_function(ax.projection_function)
+        self.play(FadeIn(ax.w_axis),FadeIn(arrow4),
+            frame.animate.reorient(-48, 55, 54, (0.18, 0.18, 0.51), 12.75))
+        
+        # add 4th arrow
+        frame.save_state()
+        final_added_arrow=Arrow(start=ax.c2p_4d(0,0,0,0),end=ax.c2p_4d(1,1,1,1),buff=0)
+        added_arrow_copy=added_arrow.copy().set_opacity(0.5)
+        self.play(frame.animate.reorient(-75, 50, 53, (0.46, 0.75, 1.28), 3.77),run_time=1.5)
+        self.play(added_arrow_copy.animate.shift(arrow4.get_vector()))
+        self.play(GrowArrow(final_added_arrow))
+        self.play(FadeOut(added_arrow_copy),FadeOut(added_arrow),
+            changeable_parts[-1].animate.set_opacity(0.5),
+            mat4d.vector_matrices[-1].animate.set_opacity(0.5))
+        self.play(frame.animate.restore(),run_time=1.5)
+
+        # 4d updater
+        def z_axis_updater(angular_speed=1 * DEG,axis=ax.z_axis):
+            def updater(m,dt):
+                m.rotate(angular_speed*dt,axis=axis.get_vector())
+            return updater
+        # frame.add_updater(z_axis_updater(angular_speed=18* DEG,axis=ax.z_axis))
+        # self.wait(20)
+        # frame.clear_updaters()
+        # vt1=ValueTracker(1)
+        # vt2=ValueTracker(1)
+        # vt3=ValueTracker(1)
+        # vt4=ValueTracker(1)
+        # changeable_parts[0].f_always.set_value(lambda:vt1.get_value())
+        # changeable_parts[1].f_always.set_value(lambda:vt2.get_value())
+        # changeable_parts[2].f_always.set_value(lambda:vt3.get_value())
+        # changeable_parts[3].f_always.set_value(lambda:vt4.get_value())
+        # changeable_parts[0].always.set_color(mat4d.color_palette[0])
+        # changeable_parts[1].always.set_color(mat4d.color_palette[1])
+        # changeable_parts[2].always.set_color(mat4d.color_palette[2])
+        # changeable_parts[3].always.set_color(mat4d.color_palette[3])
+        # arrow1.add_updater(lambda m:m.put_start_and_end_on(ax.c2p_4d(0,0,0,0),ax.c2p_4d(vt1.get_value(),0,0,0)))
+        # arrow2.add_updater(lambda m:m.put_start_and_end_on(ax.c2p_4d(0,0,0,0),ax.c2p_4d(0,vt2.get_value(),0,0)))
+        # arrow3.add_updater(lambda m:m.put_start_and_end_on(ax.c2p_4d(0,0,0,0),ax.c2p_4d(0,0,vt3.get_value(),0)))
+        # arrow4.add_updater(lambda m:m.put_start_and_end_on(ax.c2p_4d(0,0,0,0),ax.c2p_4d(0,0,0,vt4.get_value())))
+        # self.play(vt1.animate.set_value(1))
+        # for sth in VGroup(arrow1,arrow2,arrow3,arrow4,change_parts):
+        #     sth.clear_updaters()
+
+        # 4d space ---- still working !!
+        sf_grp=SGroup()
+        for i in np.concatenate((np.arange(-6, 0, 1), np.arange(1, 7, 1))):
+            sf_grp.add(sf.copy().move_to(ax.c2p_4d(0,0,0,i)))
+        self.add(sf_grp)
+        self.play(frame.animate.rotate(30*DEGREES,axis=ax.z_axis.get_vector()))
+        self.play(frame.animate.rotate(-40*DEGREES,axis=ax.z_axis.get_vector()))
+
+        # stickers
+        def get_xyz_sticker(position,axis=ax,remove_ticks=False,remove_numbers=True,remove_label=True):
+            ax_sticker=axis[0:3].copy()
+            ax_sticker.shift(ax.c2p_4d(*position))
+            if remove_ticks:
+                ax_sticker[0].remove(ax_sticker[0].ticks)
+                ax_sticker[1].remove(ax_sticker[1].ticks)
+                ax_sticker[2].remove(ax_sticker[2].ticks)
+            if remove_numbers:
+                ax_sticker[0].remove(ax_sticker[0].numbers)
+                ax_sticker[1].remove(ax_sticker[1].numbers)
+                ax_sticker[2].remove(ax_sticker[2].numbers)
+            if remove_label:
+                ax_sticker[0].remove(ax_sticker[0][-1])
+                ax_sticker[1].remove(ax_sticker[1][-1])
+                ax_sticker[2].remove(ax_sticker[2][-1])
+            return ax_sticker
+        def get_w_sticker(position,axis=ax,remove_ticks=True,remove_numbers=True,remove_label=True):
+            w_sticker=axis.w_axis.copy()
+            sf_right=normalize(cross(axis.z_axis.get_vector(),axis.w_axis.get_vector()))
+            sf_left=-sf_right
+            sf_down=normalize(cross(sf_right,axis.w_axis.get_vector()))
+            sf_up=-sf_down
+            if remove_ticks:
+                w_sticker.remove(w_sticker.ticks)
+            if remove_numbers:
+                w_sticker.remove(w_sticker.numbers)
+            if remove_label:
+                w_sticker.remove(w_sticker[-1])
+            w_sticker.shift(sf_left*position[0])
+            w_sticker.shift(sf_up*position[1])
+            return w_sticker
+        lines=VGroup(get_w_sticker([sf.u_range[1],sf.v_range[0]]),          
+                     get_w_sticker([sf.u_range[1],sf.v_range[1]]),          
+                     get_w_sticker([sf.u_range[0],sf.v_range[0]]),          
+                     get_w_sticker([sf.u_range[0],sf.v_range[1]]),)
+        axes=VGroup()
+        for i in np.concatenate((np.arange(-6, 0, 1), np.arange(1, 7, 1))):
+            axes.add(get_xyz_sticker([0,0,0,i],remove_ticks=True))
+        self.add(lines)
+        self.add(axes)
+
+        
+
+
+
+        
+
+        
+
+
         
 
 def grp_index(ax,grp,target_xyz):
@@ -610,4 +870,190 @@ class TransformFromCopy2(Transform):
     def clean_up_from_scene(self, scene: Scene) -> None:
         scene.remove(self.mobject)
         scene.remove(self.target_mobject)
+class FourDAxesCustom(ThreeDAxesCustom):
+    def __init__(
+        self,
+        x_range=(-6.0, 6.0, 1.0),
+        y_range=(-3.0, 3.0, 1.0),
+        z_range=(-4.0, 4.0, 1.0),
+        w_range=(-6.0, 6.0, 1.0),
+        frame=None,
+        show_w_axis=False,
+        **kwargs):
+        super().__init__(x_range, y_range, z_range,**kwargs)
+        self.w_range=w_range
+        self.ghost=ThreeDAxesCustom(x_range, y_range, z_range,**kwargs) 
+        self.init_w_axis(frame)
+        self.show_w_axis=show_w_axis
+        if show_w_axis:
+            self.add_w_axis()
+    def get_projection_plane(self):
+        rec=Rectangle(width=FRAME_WIDTH,
+            height=FRAME_HEIGHT,
+            fill_color=WHITE,fill_opacity=0.3,stroke_opacity=0)
+        mat=self.frame.get_inv_view_matrix()[:3,:3]
+        rec.apply_matrix(mat)
+        rec.move_to(self.frame.get_center())
+        rec.set_height(self.frame.get_height())
+        return rec
+    def make_xyz_flat(self,frame=None):
+        if frame is None:
+            frame=self.frame
+        else : frame=frame
+        def projection_wrapper(point):
+            return FourDAxesCustom.get_projection_point(point,frame)
+        self[0:3].apply_function(projection_wrapper)
+        self.projection_function=projection_wrapper
+        return self
+    def c2p_4d(self,*coords):
+        # ax.c2p_4d(1,1,1,1) --> array([1,12,0.89,1.39])
+        ax2=self.ghost
+        func=FourDAxesCustom.get_projection_point
+        point=self.w_axis.n2p(coords[-1])+func(ax2.c2p(*coords[:3]),self.frame)
+        return point
+    # overrides
+    def add_coordinate_labels(self, 
+        x_values=None, 
+        y_values=None, 
+        excluding=[0], 
+        z_values=None, font_size=18, **kwargs):
+        super().add_coordinate_labels(
+            x_values=x_values, y_values=y_values, 
+            excluding=excluding, z_values=z_values,font_size=font_size, **kwargs)
+        if self.show_w_axis:
+            self.add_w_axis_numbers()
+        return self.coordinate_labels
+    def add_axis_labels(self, *args, **kwargs):
+        super().add_axis_labels(*args, **kwargs)
+        if self.show_w_axis:
+            self.add_w_axis_label()
+    # sub functions
+    def add_w_axis(self):
+        if not self.show_w_axis:
+            self.show_w_axis=True
+        self.add(self.w_axis)
+        self.axes.add(self.w_axis)
+    def add_w_axis_label(self):
+        self.axis_labels.add(self.w_label)
+        self.w_axis.add(self.w_label)
+    def add_w_axis_numbers(self):
+        self.w_axis.add(self.w_numbers)
+        self.w_axis.numbers=self.w_numbers
 
+    def init_w_axis(self,frame):
+        # w-axis
+        if frame is None:
+            rot=Rotation.from_quat(
+                np.array([0.24558994, 0.04225083, 0.16419859, 0.95443139]))
+            self.frame=CameraFrame().set_orientation(rot)
+        else:
+            self.frame=frame
+        w_axis =  NumberLine(self.w_range)
+        w_axis.shift(w_axis.n2p(0))
+        w_axis.ticks.remove(w_axis.ticks[int(w_axis.x_max)])
+        w_axis_ghost=w_axis.copy()
+        # w-label
+        w_label=Tex('w',font_size=70)
+        w_label.next_to(w_axis,RIGHT,0.3)
+        w_axis_ghost.add(w_label)
+        # w-numbers
+        w_numbers=w_axis_ghost.add_numbers(excluding=[0])
+        # w-colors
+        w_axis.set_color(PURPLE_B)
+        w_axis.ticks.set_color(YELLOW)
+        w_label.set_color(YELLOW)
+        w_numbers.set_color(YELLOW)
+        # get matrix
+        camera_position=self.frame.get_implied_camera_location()
+        mat=FourDAxesCustom.get_rotation_matrix(camera_position)
+        w_axis.apply_matrix(mat)
+        w_axis_ghost.apply_matrix(mat)
+        # make smooth
+        w_axis.make_smooth()
+        w_label.make_smooth()
+        w_numbers.make_smooth()
+        self.w_axis=w_axis
+        self.w_label=w_label
+        self.w_numbers=w_numbers
+
+    @staticmethod
+    def get_projection_point(point,frame): # perspective 
+        #convert list to numpy column vector
+        camera_postion=frame.get_implied_camera_location()
+        frame_center=frame.get_center()
+        frame_center=np.array([frame_center]).T
+        point=np.array([point]).T
+        camera_postion=np.array([camera_postion]).T
+        # codes:
+        point=point-frame_center
+        n=camera_postion-frame_center 
+        proj_mat=np.dot(n,n.T)/np.dot(n.T,n)
+        proj_point=np.dot(proj_mat,point)
+        dirc_vector=point-proj_point
+        scale_factor=get_norm(n)/(get_norm(n-proj_point))
+        target_point=scale_factor*dirc_vector
+        final_point=target_point+frame_center
+        return final_point.T[0]   # column --> row --> first row (a list)
+    @staticmethod
+    def get_xyz(camera_position,z1=OUT):
+        # x_vector=camera_position
+        # y_vector=in the plane (z_axis and x_vector)
+        # z_vector=cross product of x_vector and y_vector
+        x=camera_position
+        y=np.cross(np.cross(x,z1),x)
+        z=np.cross(x,y)
+        return normalize(x),normalize(y),normalize(z)
+    @staticmethod
+    def get_rotation_matrix(camera_postion): # combine new basis
+        x,y,z=FourDAxesCustom.get_xyz(camera_postion)
+        B=np.array([x,y,z]).T
+        return B   
+def split_rgb_channels(image_path, save=False):
+    from PIL import Image
+    """
+    拆分图像为红、绿、蓝三个通道并返回对应的图像。
+
+    参数：
+    - image_path: str，输入图像路径。
+    - save: bool，是否保存分离后的图像（默认不保存）。
+
+    返回：
+    - r_image: 仅保留红色通道的图像。
+    - g_image: 仅保留绿色通道的图像。
+    - b_image: 仅保留蓝色通道的图像。
+    """
+    # 打开并转换为 RGB 模式
+    image_path = get_full_raster_image_path(image_path)
+    img = Image.open(image_path).convert("RGB")
+
+    # 转换为 NumPy 数组
+    pixels = np.array(img)
+
+    # 创建红色通道图像
+    r_pixels = pixels.copy()
+    r_pixels[:, :, 1] = 0  # 设置 G 通道为 0
+    r_pixels[:, :, 2] = 0  # 设置 B 通道为 0
+    r_image = Image.fromarray(r_pixels)
+
+    # 创建绿色通道图像
+    g_pixels = pixels.copy()
+    g_pixels[:, :, 0] = 0  # 设置 R 通道为 0
+    g_pixels[:, :, 2] = 0  # 设置 B 通道为 0
+    g_image = Image.fromarray(g_pixels)
+
+    # 创建蓝色通道图像
+    b_pixels = pixels.copy()
+    b_pixels[:, :, 0] = 0  # 设置 R 通道为 0
+    b_pixels[:, :, 1] = 0  # 设置 G 通道为 0
+    b_image = Image.fromarray(b_pixels)
+
+    # 保存图像（如果需要）
+    if save:
+        output_dir = get_raster_image_dir()
+        os.makedirs(output_dir, exist_ok=True)
+
+        r_image.save(os.path.join(output_dir, "red_channel.jpg"))
+        g_image.save(os.path.join(output_dir, "green_channel.jpg"))
+        b_image.save(os.path.join(output_dir, "blue_channel.jpg"))
+
+    return r_image, g_image, b_image

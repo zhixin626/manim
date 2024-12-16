@@ -2,33 +2,33 @@ from manim_imports_ext import *
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-# def get_xyz(camera_position,z1=OUT):
-#     # x_vector=camera_position
-#     # y_vector=in the plane (z_axis and x_vector)
-#     # z_vector=cross product of x_vector and y_vector
-#     x=camera_position
-#     y=np.cross(np.cross(x,z1),x)
-#     z=np.cross(x,y)
-#     return normalize(x),normalize(y),normalize(z)
-# def get_rotation_matrix(camera_postion): # combine new basis
-#     x,y,z=get_xyz(camera_postion)
-#     B=np.array([x,y,z]).T
-#     return B
-# def get_projection_point(point,frame_center,camera_postion): # perspective 
-#     #convert list to numpy comlumn vector 
-#     frame_center=np.array([frame_center]).T
-#     point=np.array([point]).T
-#     camera_postion=np.array([camera_postion]).T
-#     # codes:
-#     point=point-frame_center
-#     n=camera_postion-frame_center 
-#     proj_mat=np.dot(n,n.T)/np.dot(n.T,n)
-#     proj_point=np.dot(proj_mat,point)
-#     dirc_vector=point-proj_point
-#     scale_factor=get_norm(n)/(get_norm(n-proj_point))
-#     target_point=scale_factor*dirc_vector
-#     final_point=target_point+frame_center
-#     return final_point.T[0]   # column --> row --> first row (a list)
+def get_xyz(camera_position,z1=OUT):
+    # x_vector=camera_position
+    # y_vector=in the plane (z_axis and x_vector)
+    # z_vector=cross product of x_vector and y_vector
+    x=camera_position
+    y=np.cross(np.cross(x,z1),x)
+    z=np.cross(x,y)
+    return normalize(x),normalize(y),normalize(z)
+def get_rotation_matrix(camera_postion): # combine new basis
+    x,y,z=get_xyz(camera_postion)
+    B=np.array([x,y,z]).T
+    return B
+def get_projection_point(point,frame_center,camera_postion): # perspective 
+    #convert list to numpy comlumn vector 
+    frame_center=np.array([frame_center]).T
+    point=np.array([point]).T
+    camera_postion=np.array([camera_postion]).T
+    # codes:
+    point=point-frame_center
+    n=camera_postion-frame_center 
+    proj_mat=np.dot(n,n.T)/np.dot(n.T,n)
+    proj_point=np.dot(proj_mat,point)
+    dirc_vector=point-proj_point
+    scale_factor=get_norm(n)/(get_norm(n-proj_point))
+    target_point=scale_factor*dirc_vector
+    final_point=target_point+frame_center
+    return final_point.T[0]   # column --> row --> first row (a list)
 
     
 class matrix(InteractiveScene):
@@ -82,11 +82,16 @@ class axes4d(InteractiveScene):
         ax.add_axis_labels()
         # proj
         self.play(frame.animate.set_orientation(ax.frame.get_orientation()))
-        ax.make_xyz_flat()
+        ax.save_state()
+        self.play(ax.animate.make_xyz_flat())
+        # restore
+        self.play(frame.animate.reorient(-34, 50, 0, (0,0,0), 9.43))
+        self.play(ax.animate.restore())
         # rec
         rec=get_current_frame_rectangle(frame)
         self.play(ShowCreation(rec))
-        arrow=Arrow(start=ax.c2p_4d(0,0,0,0),end=ax.c2p_4d(1,2,3,4),buff=0)
+        arrow=Arrow(start=ax.c2p_4d(0,0,0,0),end=ax.c2p_4d(0,0,1,0),buff=0)
+        arrow.set_perpendicular_to_camera(ax.frame)
         self.add(arrow)
 
         
