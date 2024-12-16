@@ -76,38 +76,20 @@ class axes4d(InteractiveScene):
         # init
         frame=self.frame
         # start
-        ax=FourDAxesCustom()
+        ax=FourDAxesCustom(show_w_axis=True)
         self.add(ax)
         ax.add_coordinate_labels()
         ax.add_axis_labels()
         # proj
-        self.play(frame.animate.reorient(19, 28, 0, (0,0,0), 8.00))
-        frame1=frame.copy()
-    
-        # ax.save_state()
-        self.play(ax.animate.make_xyz_flat(frame))
-        dot=Dot(ax.c2p(0,0,0))
-        self.add(dot)
+        self.play(frame.animate.set_orientation(ax.frame.get_orientation()))
+        ax.make_xyz_flat()
+        # rec
+        rec=get_current_frame_rectangle(frame)
+        self.play(ShowCreation(rec))
+        arrow=Arrow(start=ax.c2p_4d(0,0,0,0),end=ax.c2p_4d(1,2,3,4),buff=0)
+        self.add(arrow)
 
         
-        # w axis
-        self.play(frame.animate.reorient(-51, 87, 0, (0.18, 0.16, 0.04), 14))
-        ax.init_w_axis(frame1)
-        self.play(Write(ax.w_axis))
-        self.play(Write(ax.w_numbers))
-        self.play(Write(ax.w_label))
-        self.play(frame.animate.increment_gamma(0.5))
-        # restore
-        self.play(ax.animate.restore())
-        # mat
-        mat=MatrixCustom(np.array([[1,0,0],[0,1,0],[0,0,1]]))
-        mat.fix_in_frame()
-        mat_comb=mat.get_linear_combination()
-        mat_comb.fix_in_frame()
-        arrows=mat.get_column_arrows(ax)
-        self.add(mat)
-        self.add(mat_comb)
-        self.add(arrows)
 
 class FourDAxesCustom(ThreeDAxesCustom):
     def __init__(
@@ -120,9 +102,11 @@ class FourDAxesCustom(ThreeDAxesCustom):
         show_w_axis=False,
         **kwargs):
         super().__init__(x_range, y_range, z_range,**kwargs)
-        self.w_range=w_range   
+        self.w_range=w_range
+        self.ghost=ThreeDAxesCustom(x_range, y_range, z_range,**kwargs) 
+        self.init_w_axis(frame)
+        self.show_w_axis=show_w_axis
         if show_w_axis:
-            self.init_w_axis(frame)
             self.add_w_axis()
     def get_projection_plane(self):
         rec=Rectangle(width=FRAME_WIDTH,
@@ -140,7 +124,14 @@ class FourDAxesCustom(ThreeDAxesCustom):
         def projection_wrapper(point):
             return FourDAxesCustom.get_projection_point(point,frame)
         self[0:3].apply_function(projection_wrapper)
+        self.projection_function=projection_wrapper
         return self
+    def c2p_4d(self,*coords):
+        # ax.c2p_4d(1,1,1,1) --> array([1,12,0.89,1.39])
+        ax2=self.ghost
+        func=FourDAxesCustom.get_projection_point
+        point=self.w_axis.n2p(coords[-1])+func(ax2.c2p(*coords[:3]),self.frame)
+        return point
     # overrides
     def add_coordinate_labels(self, 
         x_values=None, 
@@ -150,15 +141,17 @@ class FourDAxesCustom(ThreeDAxesCustom):
         super().add_coordinate_labels(
             x_values=x_values, y_values=y_values, 
             excluding=excluding, z_values=z_values,font_size=font_size, **kwargs)
-        if hasattr(self,'w_axis'):
+        if self.show_w_axis:
             self.add_w_axis_numbers()
         return self.coordinate_labels
     def add_axis_labels(self, *args, **kwargs):
         super().add_axis_labels(*args, **kwargs)
-        if hasattr(self,'w_axis'):
+        if self.show_w_axis:
             self.add_w_axis_label()
     # sub functions
     def add_w_axis(self):
+        if not self.show_w_axis:
+            self.show_w_axis=True
         self.add(self.w_axis)
         self.axes.add(self.w_axis)
     def add_w_axis_label(self):
@@ -192,7 +185,7 @@ class FourDAxesCustom(ThreeDAxesCustom):
         w_label.set_color(YELLOW)
         w_numbers.set_color(YELLOW)
         # get matrix
-        camera_position=frame.get_implied_camera_location()
+        camera_position=self.frame.get_implied_camera_location()
         mat=FourDAxesCustom.get_rotation_matrix(camera_position)
         w_axis.apply_matrix(mat)
         w_axis_ghost.apply_matrix(mat)
