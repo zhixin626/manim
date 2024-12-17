@@ -1,8 +1,9 @@
 from manim_imports_ext import *
-class starting(InteractiveScene):
+class data_warehouse(InteractiveScene):
     def construct(self):
         # init
         frame=self.frame
+
         # write title
         title=TextCustom(en='Data Warehouse',ch='数据仓库')
         title.scale(1.5)
@@ -17,10 +18,7 @@ class starting(InteractiveScene):
             4&5&6\\
             7&8&9
             \end{matrix}
-            \enspace\right]
-                    """,
-                    font_size=60,
-                    )
+            \enspace\right]""",font_size=60,)
         tex_mat_aug=Tex(R"""
             \left[\enspace
             \begin{matrix}
@@ -32,8 +30,7 @@ class starting(InteractiveScene):
             \left|\enspace
             \begin{matrix}6\\15\\24
             \end{matrix}
-            \enspace\right]
-            """,font_size=60)
+            \enspace\right]""",font_size=60)
         tex_eqn=TexText(R"""
             \begin{alignat*}{6}
              1\,&x+&&\,2\,&&y\,+&&\,3\,&&z&&=6  \\
@@ -42,8 +39,7 @@ class starting(InteractiveScene):
             \end{alignat*}
             """,
             t2c={"x":BLUE_A,"y":BLUE_B,"z":BLUE_C},
-            isolate=["+"]
-                        )
+            isolate=["+"])
         grp=VGroup(tex_mat_aug,tex_eqn).arrange(RIGHT,buff=1)
         text1=TextCustom('Matrix','矩阵',DOWN,buff=0.4).next_to(tex_mat_aug,UP)
         text2=TextCustom('Augmented Matrix','增广矩阵',DOWN,buff=0.2).next_to(tex_mat_aug,UP)
@@ -141,6 +137,12 @@ class starting(InteractiveScene):
         self.play(LaggedStartMap(FadeOut,Group(im_r,im_g,im_b),shift=RIGHT),
             LaggedStartMap(FadeOut,VGroup(mat_r,mat_g,mat_b),shift=LEFT))
 
+        pass
+class space_builder(InteractiveScene):
+    def construct(self):
+        # init
+        frame=self.frame
+        
         # 2. Builder of Spaces---text
         title2=TextCustom(en='Builder of Spaces',ch='空间建构师')
         title2.scale(1.5)
@@ -311,8 +313,8 @@ class starting(InteractiveScene):
                 mat3d.vector_matrices[2].brackets,path_arc=1),
             TransformFromCopy(mat3d.get_column(1),
                 mat3d.vector_matrices[2].get_column(0),path_arc=1))]
-        self.play(LaggedStart(*animations,lag_ratio=0.5))
-        self.play(Write(mat3d.parts),run_time=2)
+        self.play(LaggedStart(*animations,lag_ratio=0.5,run_time=2))
+        self.play(Write(mat3d.parts),run_time=1)
 
         # write three d axis
         changeable_parts=mat3d.get_changeable_parts(font_size=25)
@@ -476,8 +478,8 @@ class starting(InteractiveScene):
         self.wait(2)
         self.play(LaggedStartMap(FadeOut,VGroup(mat3d),shift=LEFT),
                 LaggedStartMap(FadeOut,VGroup(changeable_parts,mat3d.vector_matrices),shift=RIGHT),
-                *map(FadeOut,VGroup(ax,arrow1,arrow2,arrow3,arrow4,grp)))
-        self.play(*map(FadeOut,Group(glow1,glow2,glow3,glow4,glow5,glow6,glow7,glow8)))
+                *map(FadeOut,VGroup(ax,arrow1,arrow2,arrow3,arrow4,grp)),
+                *map(FadeOut,Group(glow1,glow2,glow3,glow4,glow5,glow6,glow7,glow8)))
         frame.clear_updaters()
 
         # 4d_text
@@ -546,7 +548,7 @@ class starting(InteractiveScene):
             TransformFromCopy(mat4d.get_column(0),
                 mat4d.vector_matrices[3].get_column(0),path_arc=1))]
         self.play(LaggedStart(*animations,lag_ratio=0.5))
-        self.play(Write(mat4d.parts),run_time=2)
+        self.play(Write(mat4d.parts),run_time=1)
         
         # write 4d axis
         ax=FourDAxesCustom(show_w_axis=True)
@@ -616,6 +618,7 @@ class starting(InteractiveScene):
         self.wait(2)
 
         # rotation to 4d
+        enter_point_frame=frame.copy()
         frame.save_state()
         rotation_mat=FourDAxesCustom.get_rotation_matrix(frame.get_implied_camera_location())
         self.play(Write(ax.w_axis),
@@ -689,40 +692,30 @@ class starting(InteractiveScene):
         self.play(frame.animate.restore(),run_time=1.5)
 
         # 4d updater
-        def z_axis_updater(angular_speed=1 * DEG,axis=ax.z_axis):
-            def updater(m,dt):
-                m.rotate(angular_speed*dt,axis=axis.get_vector())
-            return updater
-        # frame.add_updater(z_axis_updater(angular_speed=18* DEG,axis=ax.z_axis))
-        # self.wait(20)
-        # frame.clear_updaters()
-        # vt1=ValueTracker(1)
-        # vt2=ValueTracker(1)
-        # vt3=ValueTracker(1)
-        # vt4=ValueTracker(1)
-        # changeable_parts[0].f_always.set_value(lambda:vt1.get_value())
-        # changeable_parts[1].f_always.set_value(lambda:vt2.get_value())
-        # changeable_parts[2].f_always.set_value(lambda:vt3.get_value())
-        # changeable_parts[3].f_always.set_value(lambda:vt4.get_value())
-        # changeable_parts[0].always.set_color(mat4d.color_palette[0])
-        # changeable_parts[1].always.set_color(mat4d.color_palette[1])
-        # changeable_parts[2].always.set_color(mat4d.color_palette[2])
-        # changeable_parts[3].always.set_color(mat4d.color_palette[3])
-        # arrow1.add_updater(lambda m:m.put_start_and_end_on(ax.c2p_4d(0,0,0,0),ax.c2p_4d(vt1.get_value(),0,0,0)))
-        # arrow2.add_updater(lambda m:m.put_start_and_end_on(ax.c2p_4d(0,0,0,0),ax.c2p_4d(0,vt2.get_value(),0,0)))
-        # arrow3.add_updater(lambda m:m.put_start_and_end_on(ax.c2p_4d(0,0,0,0),ax.c2p_4d(0,0,vt3.get_value(),0)))
-        # arrow4.add_updater(lambda m:m.put_start_and_end_on(ax.c2p_4d(0,0,0,0),ax.c2p_4d(0,0,0,vt4.get_value())))
-        # self.play(vt1.animate.set_value(1))
-        # for sth in VGroup(arrow1,arrow2,arrow3,arrow4,change_parts):
-        #     sth.clear_updaters()
+        vt1=ValueTracker(1)
+        vt2=ValueTracker(1)
+        vt3=ValueTracker(1)
+        vt4=ValueTracker(1)
+        changeable_parts[0].f_always.set_value(lambda:vt1.get_value())
+        changeable_parts[1].f_always.set_value(lambda:vt2.get_value())
+        changeable_parts[2].f_always.set_value(lambda:vt3.get_value())
+        changeable_parts[3].f_always.set_value(lambda:vt4.get_value())
+        changeable_parts[0].always.set_color(mat4d.color_palette[0])
+        changeable_parts[1].always.set_color(mat4d.color_palette[1])
+        changeable_parts[2].always.set_color(mat4d.color_palette[2])
+        changeable_parts[3].always.set_color(mat4d.color_palette[3])
+        arrow1.add_updater(lambda m:m.put_start_and_end_on(ax.c2p_4d(0,0,0,0),ax.c2p_4d(vt1.get_value(),0,0,0)))
+        arrow2.add_updater(lambda m:m.put_start_and_end_on(ax.c2p_4d(0,0,0,0),ax.c2p_4d(0,vt2.get_value(),0,0)))
+        arrow3.add_updater(lambda m:m.put_start_and_end_on(ax.c2p_4d(0,0,0,0),ax.c2p_4d(0,0,vt3.get_value(),0)))
+        arrow4.add_updater(lambda m:m.put_start_and_end_on(ax.c2p_4d(0,0,0,0),ax.c2p_4d(0,0,0,vt4.get_value())))
+        arrow4.always.set_perpendicular_to_camera(ax.frame)
+        final_added_arrow.add_updater(lambda m:m.put_start_and_end_on(ax.c2p_4d(0,0,0,0),ax.c2p_4d(vt1.get_value(),vt2.get_value(),vt3.get_value(),vt4.get_value())))
 
-        # 4d space ---- still working !!
+
+        # 4d space spanning
         sf_grp=SGroup()
         for i in np.concatenate((np.arange(-6, 0, 1), np.arange(1, 7, 1))):
             sf_grp.add(sf.copy().move_to(ax.c2p_4d(0,0,0,i)))
-        self.add(sf_grp)
-        self.play(frame.animate.rotate(30*DEGREES,axis=ax.z_axis.get_vector()))
-        self.play(frame.animate.rotate(-40*DEGREES,axis=ax.z_axis.get_vector()))
 
         # stickers
         def get_xyz_sticker(position,axis=ax,remove_ticks=False,remove_numbers=True,remove_label=True):
@@ -759,22 +752,180 @@ class starting(InteractiveScene):
         lines=VGroup(get_w_sticker([sf.u_range[1],sf.v_range[0]]),          
                      get_w_sticker([sf.u_range[1],sf.v_range[1]]),          
                      get_w_sticker([sf.u_range[0],sf.v_range[0]]),          
-                     get_w_sticker([sf.u_range[0],sf.v_range[1]]),)
+                     get_w_sticker([sf.u_range[0],sf.v_range[1]]),
+                     get_w_sticker([-7.11,0]),
+                     get_w_sticker([7.11,0]),
+                     get_w_sticker([0,4]),
+                     get_w_sticker([0,-4]),)
         axes=VGroup()
         for i in np.concatenate((np.arange(-6, 0, 1), np.arange(1, 7, 1))):
             axes.add(get_xyz_sticker([0,0,0,i],remove_ticks=True))
-        self.add(lines)
-        self.add(axes)
 
+        def z_axis_updater(angular_speed=1 * DEG,axis=ax.z_axis):
+            def updater(m,dt):
+                m.rotate(angular_speed*dt,axis=axis.get_vector())
+            return updater
+        # w=6
+        frame.clear_updaters()
+        frame.add_updater(z_axis_updater(angular_speed=-2* DEG,axis=ax.z_axis))
+        def span_4d_animation(w,run_time=1,deg=-10,remove_label=True,remove_ticks=True):
+            mapping = {-6: 0, -5: 1, -4: 2, -3: 3, -2: 4, -1: 5, 1: 6, 2: 7, 3: 8, 4: 9, 5: 10, 6: 11}
+            xyz_sticker=get_xyz_sticker([0,0,0,w],
+                remove_label=remove_label,remove_ticks=remove_ticks)
+            xyz_sticker.set_opacity(0.3)
+            self.play(frame.animate.rotate(deg*DEG,axis=ax.z_axis.get_vector()),
+                    vt1.animate.set_value(0),
+                    vt2.animate.set_value(0),
+                    vt3.animate.set_value(0),
+                    vt4.animate.set_value(w),FadeIn(sf_grp[mapping.get(w)]),
+                    rate_func=linear,run_time=run_time)
+            self.play(vt1.animate.set_value(-6),run_time=run_time)
+            self.play(Write(xyz_sticker[0]),vt1.animate.set_value(6),run_time=run_time)
+            self.play(vt1.animate.set_value(0),vt2.animate.set_value(-3),run_time=run_time/2)
+            self.play(Write(xyz_sticker[1]),vt2.animate.set_value(3),run_time=run_time)
+            self.play(vt2.animate.set_value(0),vt3.animate.set_value(-4),run_time=run_time/2)
+            self.play(Write(xyz_sticker[2]),vt3.animate.set_value(4),run_time=run_time)
+
+        span_4d_animation(6,run_time=1,deg=20,remove_label=False,remove_ticks=False)
+
+        span_4d_animation(5,run_time=0.8,deg=-20)
+
+        span_4d_animation(4,run_time=0.7,deg=-2)
+
+        span_4d_animation(3,run_time=0.5,deg=0)
+
+        span_4d_animation(2,run_time=0.2,deg=0)
+
+        span_4d_animation(1,run_time=0.2,deg=0)
+
+        frame.clear_updaters()
+        frame.add_updater(z_axis_updater(angular_speed=-3* DEG,axis=ax.z_axis))
+
+        span_4d_animation(-1,run_time=0.2,deg=0)
+
+        span_4d_animation(-2,run_time=0.2,deg=0)
+
+        span_4d_animation(-3,run_time=0.2,deg=0)
+
+        span_4d_animation(-4,run_time=0.2,deg=0)
+
+        span_4d_animation(-5,run_time=0.2,deg=0)
+
+        span_4d_animation(-6,run_time=0.2,deg=0)
+
+        self.play(frame.animate.reorient(-49, 56, 54, (0.23, 0.23, 0.62), 15.86),
+            Write(lines,stroke_color=WHITE),
+            rate_func=linear,run_time=3)
+
+        # fade out and clear updaters
+        frame.clear_updaters()
+        self.play( 
+            LaggedStartMap(FadeOut,VGroup(mat4d,tex_3d),shift=LEFT) ,
+            LaggedStartMap(FadeOut,VGroup(changeable_parts,mat4d.vector_matrices,*lines),shift=RIGHT),
+            LaggedStartMap(FadeOut,Group(self.mobjects)))
         
+class magician_of_transform(InteractiveScene):
+    def construct(self):
+        # init
+        frame=self.frame
+        # write title
+        title=TextCustom(en='Magician of Transformation',ch='掌管变换的魔术师')
+        title.scale(1.5)
+        self.play(FadeIn(title.en,shift=RIGHT),FadeIn(title.ch,shift=LEFT))
+        self.wait(2)
+        self.play(FadeOut(title.en,shift=RIGHT),FadeOut(title.ch,shift=LEFT))
+        # rotation
+        im=ImageMobject('kun.png')
+        sf=Sphere(radius=5,resolution=(101,101))
+        texture=TexturedSurface(sf,'basketball.jpg')
+        arrow_x=Arrow(RIGHT*4.8,RIGHT*8,thickness=20,fill_color=GREEN)
+        arrow_y=Arrow(UP*4.8,UP*8,thickness=20,fill_color=RED)
+        arrow_z=Arrow(OUT*4.8,OUT*8,thickness=20,fill_color=BLUE)
+        arrow_z.rotate(PI/2,axis=OUT)
+        arrows=VGroup(arrow_x,arrow_y,arrow_z)
+        arrows.apply_depth_test()
+        frame.reorient(29, 41, 0, (0.41, 1.06, 0.56), 14.22)
+        # self.add(texture)
+        # self.add(arrows)
+        tex_x=Tex('x',font_size=300)
+        tex_x.next_to(arrow_x,RIGHT).match_color(arrow_x)
+        tex_y=Tex('y',font_size=300)
+        tex_y.next_to(arrow_y,UP).match_color(arrow_y)
+        tex_z=Tex('z',font_size=300)
+        tex_z.next_to(arrow_z,OUT,buff=1).match_color(arrow_z)
+        tex_z.rotate(PI/2,axis=RIGHT)
+        texs=VGroup(tex_x,tex_y,tex_z)
+        # self.add(texs)
+        # kun svg
+        frame.to_default_state()
+        svg=SVGMobject('kun.svg',stroke_color=WHITE,stroke_opacity=1,stroke_width=1,
+            fill_opacity=1,fill_color=BLACK)
+        points=svg.get_all_points()
+        cloud=DotCloud(points,radius=0.02)
+        cloud.scale(2)
+        ax=ThreeDAxesCustom()
+        ax.add_axis_labels()
+        ax.remove(ax.z_axis)
+        svg.scale(2)
+        self.add(cloud,ax)
+        # svg.add_background_rectangle(color=WHITE,opacity=1)
+        # self.play(ShowCreation(cloud,run_time=10))
+        # self.play(DrawBorderThenFill(svg),run_time=10,rate_func=linear)
 
+        # matrix
+        rotmat=Tex(R"""\left[\enspace\begin{matrix}
+                    \cos \theta & -\sin \theta \\[1.2mm]
+                    \sin \theta & \cos \theta
+                    \end{matrix}\enspace
+                    \right]""",
+                    t2c={R"\theta":YELLOW})
+        rotmat.to_corner(UL,buff=0.5)
+        def get_rotmat(theta):
+            degrees=theta*DEGREES
+            rot_mat=np.array([[np.cos(degrees),-np.sin(degrees)],
+                            [np.sin(degrees),np.cos(degrees)]])
+            m=Tex(Rf"""\left[\enspace\begin{{matrix}}
+                    {round(np.cos(degrees),2)} & {-round(np.sin(degrees),2)} \\[1.2mm]
+                    {round(np.sin(degrees),2)} & {round(np.cos(degrees),2)} 
+                    \end{{matrix}}\enspace
+                    \right]""")
+            # m=Matrix(rot_mat)
+            m.to_corner(UR)
+            return m
+        rotmat2=get_rotmat(30).match_height(mat)
+        self.add(mat)
+        self.add(rotmat2)
+        cloud_points=cloud.get_points()
+        arrow=Arrow(ax.c2p(0,0,0),ax.c2p(*cloud_points[100]),buff=0)
+        self.add(arrow)
+        arrow0=Arrow(rotmat.get_right(),rotmat2.get_left())
+        self.add(arrow0)
+        tex_theta=Tex(R"""\theta=30^\circ""")
+        tex_theta.next_to(arrow0,UP)
+        self.add(tex_theta)
+        # cloud2
+        cloud2=DotCloud(points,radius=0.02,color=GREEN,opacity=0.5)
+        cloud2.scale(2)
+        cloud2.rotate(30*DEGREES)
+        cloud2.add_to_back()
+        self.add(cloud2)
+        pass
 
+def get_frame_position(frame):
+    frame = frame
+    center = frame.get_center()
+    height = frame.get_height()
+    angles = frame.get_euler_angles()
 
-        
-
-        
-
-
+    call = f"reorient("
+    theta, phi, gamma = (angles / DEG).astype(int)
+    call += f"{theta}, {phi}, {gamma}"
+    if any(center != 0):
+        call += f", {tuple(np.round(center, 2))}"
+    if height != FRAME_HEIGHT:
+        call += ", {:.2f}".format(height)
+    call += ")"
+    return call
         
 
 def grp_index(ax,grp,target_xyz):

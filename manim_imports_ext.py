@@ -38,12 +38,12 @@ class TextCustom(VGroup):
             self.ch.next_to(self.en, direction, buff=buff)
 
 class MatrixCustom(Matrix):
-    def __init__(self,matrix_arr,**kwargs):
+    def __init__(self,matrix_arr,color_palette=[TEAL_B,YELLOW,BLUE,RED_A],**kwargs):
         super().__init__(matrix_arr,**kwargs)
         # attributes
         self.nparr=matrix_arr # just easy to get matrix array
         self.number_of_columns=len(self.nparr[0,:])
-        self.color_palette=[TEAL_B,YELLOW,BLUE,RED_A]
+        self.color_palette=color_palette
         # position
         self.to_corner(UL)
         # colors
@@ -106,11 +106,17 @@ class MatrixCustom(Matrix):
     def get_column_arrows(self,ax,**kwargs):
         grp=VGroup()
         for i in range(self.number_of_columns):
-            arrow=Arrow(ax.c2p(0,0,0),ax.c2p(*self.nparr[:,i]),buff=0,**kwargs)
+            if i ==3:
+                arrow=Arrow(ax.c2p_4d(0,0,0,0),ax.c2p_4d(*self.nparr[:,i]),buff=0,**kwargs)
+            else:
+                arrow=Arrow(ax.c2p(0,0,0),ax.c2p(*self.nparr[:3,i]),buff=0,**kwargs)
             arrow.nparr=self.nparr[:,i]
-            arrow.match_color(self.columns[i])
+            arrow.set_color(self.color_palette[i])
             grp.add(arrow)
         return grp
+
+
+
 
 
 

@@ -54,6 +54,8 @@ $$
     
 
   - 三维旋转
+    
+    
     $$
     \begin{aligned}
     & R_x(\theta)=\left[\begin{array}{ccc}
@@ -74,7 +76,7 @@ $$
     \end{aligned}
     $$
     
-
+    
     
 
 - 投影（垂直投影）（到$A$的列空间）
