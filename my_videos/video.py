@@ -1,3 +1,4 @@
+from pyglet.libs.win32.constants import ENM_CHANGE
 from manim_imports_ext import *
 class data_warehouse(InteractiveScene):
     def construct(self):
@@ -82,11 +83,139 @@ class data_warehouse(InteractiveScene):
         self.play(FadeOut(tex_eqn),VGroup(tex_mat_aug,text2).animate.center())
         self.play(LaggedStartMap(FadeOut,VGroup(text2.en,text2.ch,tex_mat_aug),shift=RIGHT*2))
 
-        # fade in image
+        # vectorized--kun
+        def get_cloud_grp(points,slices):
+            grp=Group()
+            for i in range(slices):
+                cloud=DotCloud(points[i::slices,:],radius=0.05)
+                grp.add(cloud)
+            # grp.arrange(RIGHT)
+            return grp
         ax=ThreeDAxesCustom()
         ax.add_axis_labels()
-        # split_rgb_channels("kun",save=True)
-        im=ImageMobject('kun.png')
+        ax.add_coordinate_labels()
+        ax.remove(ax.z_axis)
+        ax.set_opacity(0.7)
+        svg=SVGMobject('kun.svg',stroke_color=WHITE,stroke_opacity=1,stroke_width=1,)
+        svg.scale(2)
+        points=svg.get_all_points()             # 1518
+        clouds=get_cloud_grp(points,slices=66)  # 1518=23*66
+        # clouds.scale(2)
+        cloud_0_points=np.round(clouds[0].get_all_points().T,2)[:2,:]
+        mat=Matrix(cloud_0_points)
+
+        # matrix -- store image data 
+        title=TextCustom(en='For Example',ch='举个栗子')
+        title.scale(1.5)
+        self.play(FadeIn(title.en,shift=RIGHT),FadeIn(title.ch,shift=LEFT))
+        self.wait()
+        self.play(FadeOut(title.en,shift=RIGHT),FadeOut(title.ch,shift=LEFT))
+
+        # matrix_init
+        mat.to_corner(UL)
+        mat.set_opacity(1)
+        mat.clear_updaters()
+        self.play(Write(mat))
+        self.play(mat.animate.to_corner(UR),run_time=5,rate_func=there_and_back)
+        self.wait()
+        self.play(Write(ax))
+
+        # animations
+        the_points_grp=Group()
+        def grow_dots_anim(cloud,i,run_time=1):
+            the_point=cloud.copy().pointwise_become_partial(clouds[0],0,(i+1)/num_of_points)
+            the_col=mat.get_column(i)
+            the_coord=cloud.get_all_points()[i,:]
+            arrow=Arrow(start=ORIGIN,end=the_coord,buff=0)
+            mat.get_column(i).set_opacity(0.5)
+            self.play(TransformFromCopy(the_col,arrow),run_time=run_time/2)
+            self.play(FadeOutToPoint(arrow,the_coord),FadeIn(the_point),run_time=run_time/2)
+            the_points_grp.add(the_point)
+
+        # compute whole_time
+        num_of_points=cloud_0_points.shape[1]
+        whole_time=0
+        def func(i):
+            return 2/math.sqrt(i)
+        for i in np.arange(5,num_of_points):
+            run_time=func(i)
+            whole_time+=run_time
+        print(f"whole time is {whole_time}")
+
+        # anims
+        velocity=(mat.get_right()[0]-frame.get_shape()[0]/2)/(whole_time+1.8*3)
+        grow_dots_anim(clouds[0],0,run_time=2)
+        grow_dots_anim(clouds[0],1,run_time=2)
+        mat.add_updater(lambda m,dt:m.shift(dt*LEFT*velocity))
+        grow_dots_anim(clouds[0],2,run_time=1.8)
+        grow_dots_anim(clouds[0],3,run_time=1.8)
+        grow_dots_anim(clouds[0],4,run_time=1.8)
+
+        for i in np.arange(5,num_of_points):
+            run_time=func(i)
+            grow_dots_anim(clouds[0],i,run_time=run_time)
+        mat.clear_updaters()
+
+        # many many points
+        left_bracket=Tex(R"[")
+        number=Tex('2',font_size=48)
+        times=Tex(R'\times')
+        decimal_number=DecimalNumber(23,num_decimal_places=0,color=TEAL)
+        decimal_number.scale(0.7)
+        right_bracket=Tex(R"]")
+        grp=VGroup(left_bracket,number,times,decimal_number,right_bracket).arrange(RIGHT)
+        grp.match_height(mat)
+        grp.to_edge(UP)
+        # self.add(grp)
+        self.play(FadeTransform(mat.brackets[0],left_bracket),
+            FadeTransform(mat.brackets[1],right_bracket),
+            ReplacementTransform(VGroup(mat.elements),VGroup(number,times,decimal_number)),
+            run_time=2)
+
+        # shuffle clouds
+        clouds_shuffled=clouds[1:].shuffle()
+
+        def add_cloud(i,clouds,number,value):
+            value=value+value*(i+1)
+            self.play( number.animate.set_value(value),
+                ShowCreation(clouds_shuffled[i]) ,run_time=1)
+
+
+        for i in np.arange(0,10):
+            add_cloud(i,clouds_shuffled,decimal_number,num_of_points)
+
+        self.play(LaggedStartMap(ShowCreation,clouds_shuffled[10:],run_time=8),
+            decimal_number.animate.set_value(len(points)).set_anim_args(run_time=2),
+            right_bracket.animate.shift(RIGHT).set_anim_args(run_time=2))
+
+        # fadeout drawborder
+        self.play(LaggedStartMap(FadeOut,grp,shift=UP),FadeOut(ax))
+        self.play(DrawBorderThenFill(svg,run_time=10,stroke_width=3),
+            LaggedStartMap(FadeOut,Group(clouds_shuffled,the_points_grp),run_time=10))
+
+        # back rectangle
+        rec=BackgroundRectangle(svg,color=WHITE,buff=0,fill_opacity=1)
+        svg.set_fill(color=BLACK,opacity=1)
+        rec.next_to(svg,UP)
+
+        # image
+        im=ImageMobject('kun.jpg')
+        im.rescale_to_fit(rec.get_width(),0)
+        im.set_opacity(1)
+
+        # rec animation
+        rec.stretch_to_fit_height(im.get_height())
+        self.play(FadeIn(rec),run_time=0.3)
+        self.bring_to_back(rec)
+        self.play(rec.animate.move_to(svg,aligned_edge=DOWN),run_time=3)
+
+
+        # image anim
+        im.move_to(rec)
+        self.play(FadeTransform(Group(rec,svg),im),run_time=2,rate_func=smooth)
+
+
+        # r,g,b
         im_r=ImageMobject('red_channel.jpg')
         im_g=ImageMobject('green_channel.jpg')
         im_b=ImageMobject('blue_channel.jpg')
@@ -101,7 +230,7 @@ class data_warehouse(InteractiveScene):
         for subim in im_grp:
             subim.apply_depth_test().set_opacity(0.5)
         
-        self.play(FadeIn(im),rate_func=linear)
+        # self.play(FadeIn(im),rate_func=linear)
         self.play(im.animate.rotate(-PI/4,axis=UP))
         self.play(FadeTransform(im,im_g),FadeTransform(im.copy(),im_r),
                 FadeTransform(im.copy(),im_b))
@@ -134,8 +263,22 @@ class data_warehouse(InteractiveScene):
                 Write(mat_b),run_time=2
             ))
         self.wait()
-        self.play(LaggedStartMap(FadeOut,Group(im_r,im_g,im_b),shift=RIGHT),
-            LaggedStartMap(FadeOut,VGroup(mat_r,mat_g,mat_b),shift=LEFT))
+        # write some text
+        text=TextCustom(en='Pixel Matrices of Red, Green, and Blue Channels',
+                        ch='红绿蓝三色通道像素矩阵',
+                        font_size_en=30,font_size_ch=30,
+                        en_config={'t2c':{'Red':RED,'Green':GREEN,'Blue':BLUE}},
+                        ch_config={'t2c':{'红':RED,'绿':GREEN,'蓝':BLUE}})
+        text.next_to(im_g,UP)
+        # self.add(text)
+        self.play(LaggedStartMap(Write,VGroup(text.en,text.ch),lag_ratio=0.02),run_time=2)
+        self.wait()
+        # fadeout
+        self.play(
+            LaggedStartMap(FadeOut,Group(im_r,mat_r),shift=LEFT),
+            LaggedStartMap(FadeOut,Group(im_b,mat_b),shift=RIGHT),
+            LaggedStartMap(FadeOut,Group(im_g,mat_g),shift=UP),
+            LaggedStartMap(FadeOut,text,shift=UP*2))
 
         pass
 class space_builder(InteractiveScene):
@@ -818,97 +961,24 @@ class space_builder(InteractiveScene):
             rate_func=linear,run_time=3)
 
         # fade out and clear updaters
+        self.wait()
         frame.clear_updaters()
         self.play( 
             LaggedStartMap(FadeOut,VGroup(mat4d,tex_3d),shift=LEFT) ,
             LaggedStartMap(FadeOut,VGroup(changeable_parts,mat4d.vector_matrices,*lines),shift=RIGHT),
             LaggedStartMap(FadeOut,Group(self.mobjects)))
-        
-class magician_of_transform(InteractiveScene):
+class magician_of_transforming(InteractiveScene):
     def construct(self):
         # init
         frame=self.frame
+        # start
         # write title
         title=TextCustom(en='Magician of Transformation',ch='掌管变换的魔术师')
         title.scale(1.5)
         self.play(FadeIn(title.en,shift=RIGHT),FadeIn(title.ch,shift=LEFT))
         self.wait(2)
         self.play(FadeOut(title.en,shift=RIGHT),FadeOut(title.ch,shift=LEFT))
-        # rotation
-        im=ImageMobject('kun.png')
-        sf=Sphere(radius=5,resolution=(101,101))
-        texture=TexturedSurface(sf,'basketball.jpg')
-        arrow_x=Arrow(RIGHT*4.8,RIGHT*8,thickness=20,fill_color=GREEN)
-        arrow_y=Arrow(UP*4.8,UP*8,thickness=20,fill_color=RED)
-        arrow_z=Arrow(OUT*4.8,OUT*8,thickness=20,fill_color=BLUE)
-        arrow_z.rotate(PI/2,axis=OUT)
-        arrows=VGroup(arrow_x,arrow_y,arrow_z)
-        arrows.apply_depth_test()
-        frame.reorient(29, 41, 0, (0.41, 1.06, 0.56), 14.22)
-        # self.add(texture)
-        # self.add(arrows)
-        tex_x=Tex('x',font_size=300)
-        tex_x.next_to(arrow_x,RIGHT).match_color(arrow_x)
-        tex_y=Tex('y',font_size=300)
-        tex_y.next_to(arrow_y,UP).match_color(arrow_y)
-        tex_z=Tex('z',font_size=300)
-        tex_z.next_to(arrow_z,OUT,buff=1).match_color(arrow_z)
-        tex_z.rotate(PI/2,axis=RIGHT)
-        texs=VGroup(tex_x,tex_y,tex_z)
-        # self.add(texs)
-        # kun svg
-        frame.to_default_state()
-        svg=SVGMobject('kun.svg',stroke_color=WHITE,stroke_opacity=1,stroke_width=1,
-            fill_opacity=1,fill_color=BLACK)
-        points=svg.get_all_points()
-        cloud=DotCloud(points,radius=0.02)
-        cloud.scale(2)
-        ax=ThreeDAxesCustom()
-        ax.add_axis_labels()
-        ax.remove(ax.z_axis)
-        svg.scale(2)
-        self.add(cloud,ax)
-        # svg.add_background_rectangle(color=WHITE,opacity=1)
-        # self.play(ShowCreation(cloud,run_time=10))
-        # self.play(DrawBorderThenFill(svg),run_time=10,rate_func=linear)
 
-        # matrix
-        rotmat=Tex(R"""\left[\enspace\begin{matrix}
-                    \cos \theta & -\sin \theta \\[1.2mm]
-                    \sin \theta & \cos \theta
-                    \end{matrix}\enspace
-                    \right]""",
-                    t2c={R"\theta":YELLOW})
-        rotmat.to_corner(UL,buff=0.5)
-        def get_rotmat(theta):
-            degrees=theta*DEGREES
-            rot_mat=np.array([[np.cos(degrees),-np.sin(degrees)],
-                            [np.sin(degrees),np.cos(degrees)]])
-            m=Tex(Rf"""\left[\enspace\begin{{matrix}}
-                    {round(np.cos(degrees),2)} & {-round(np.sin(degrees),2)} \\[1.2mm]
-                    {round(np.sin(degrees),2)} & {round(np.cos(degrees),2)} 
-                    \end{{matrix}}\enspace
-                    \right]""")
-            # m=Matrix(rot_mat)
-            m.to_corner(UR)
-            return m
-        rotmat2=get_rotmat(30).match_height(mat)
-        self.add(mat)
-        self.add(rotmat2)
-        cloud_points=cloud.get_points()
-        arrow=Arrow(ax.c2p(0,0,0),ax.c2p(*cloud_points[100]),buff=0)
-        self.add(arrow)
-        arrow0=Arrow(rotmat.get_right(),rotmat2.get_left())
-        self.add(arrow0)
-        tex_theta=Tex(R"""\theta=30^\circ""")
-        tex_theta.next_to(arrow0,UP)
-        self.add(tex_theta)
-        # cloud2
-        cloud2=DotCloud(points,radius=0.02,color=GREEN,opacity=0.5)
-        cloud2.scale(2)
-        cloud2.rotate(30*DEGREES)
-        cloud2.add_to_back()
-        self.add(cloud2)
         pass
 
 def get_frame_position(frame):
