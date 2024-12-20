@@ -25,7 +25,7 @@ class TextCustom(VGroup):
         font_size_en=48           ,font_size_ch=40,
         en_config=dict()          ,ch_config=dict(),
         **kwargs):
-        super().__init__(**kwargs)
+        super().__init__()
         self.en = None
         self.ch = None
         if en is not None:
@@ -35,7 +35,7 @@ class TextCustom(VGroup):
             self.ch = Text(ch, font=font_ch, font_size=font_size_ch,**ch_config)
             self.add(self.ch)
         if self.en and self.ch:
-            self.ch.next_to(self.en, direction, buff=buff)
+            self.ch.next_to(self.en, direction, buff=buff,**kwargs)
 
 class MatrixCustom(Matrix):
     def __init__(self,matrix_arr,color_palette=[TEAL_B,YELLOW,BLUE,RED_A],**kwargs):

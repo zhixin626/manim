@@ -1,4 +1,3 @@
-from scipy.linalg import decomp
 from manim_imports_ext import *
 import time
 class data_warehouse_part(InteractiveScene):
@@ -212,77 +211,733 @@ class data_warehouse_part(InteractiveScene):
 
 
 
-class rotation(InteractiveScene):
+class video_rotation(InteractiveScene):
     def construct(self):
         # init
         frame=self.frame
+         
+        # title--rotation
+        title=TextCustom(en='Rotation Transformation',ch='旋转变换')
+        title.scale(1.5)
+        title.en["Rotation"].set_color(TEAL_A)
+        title.ch["旋转"].set_color(TEAL_A)
+        self.play(FadeIn(title.en,shift=RIGHT),FadeIn(title.ch,shift=LEFT))
+        title2=TextCustom(en='Rotation Marix',ch='旋转矩阵')
+        title2.en["Rotation"].set_color(TEAL)
+        title2.ch["旋转"].set_color(TEAL)
+        title2.scale(1.5)
+        self.play(ReplacementTransform(title.en['Rotation'],title2.en["Rotation"]),
+            ReplacementTransform(title.ch['旋转'],title2.ch["旋转"]),
+            LaggedStartMap(FadeOut,VGroup(title.en["Transformation"],title.ch["变换"]),shift=DOWN*2),
+            LaggedStartMap(FadeIn,VGroup(title2.en["Marix"],title2.ch["矩阵"]),shift=DOWN*2))
+        self.play(title2.animate.arrange(DOWN,aligned_edge=LEFT).scale(0.7).to_edge(LEFT,buff=1))
 
-        # rotation
-        ax=ThreeDAxesCustom()
+        # arrange down
+        text_orthogonal=TextCustom(en='Orthogonal Matrix',ch='正交矩阵',aligned_edge=LEFT)
+        text_det=TextCustom(en='Determinant is 1',ch='行列式为1',aligned_edge=LEFT)
+        text_grp=VGroup(text_orthogonal,text_det)
+        text_grp.arrange(DOWN,buff=2,aligned_edge=LEFT)
+        text_grp.to_edge(RIGHT,buff=1)
+        tex_orthogonal=Tex(R"A A^\intercal=I",t2c={R"\intercal":TEAL})
+        tex_det=Tex(R"\det (A)=1",t2c={R"\det":TEAL})
+        tex_orthogonal.scale(1.5)
+        tex_det.scale(1.5)
+        tex_orthogonal.move_to(text_orthogonal,aligned_edge=LEFT)
+        tex_det.move_to(text_det,aligned_edge=LEFT)
+        tex_grp=VGroup(tex_orthogonal,tex_det)
+        brace=Brace(text_grp,direction=LEFT,buff=1)
+        text_orthogonal.en['Orthogonal'].set_color(TEAL)
+        text_orthogonal.ch['正交'].set_color(TEAL)
+        text_det.en['Determinant'].set_color(TEAL)
+        text_det.ch['行列式'].set_color(TEAL)
+        self.play(Write(brace),run_time=0.5)
+        self.play(LaggedStartMap(Write,VGroup(text_orthogonal.en,text_orthogonal.ch)),run_time=1)
+        self.play(LaggedStartMap(Write,VGroup(text_det.en,text_det.ch)),run_time=1)
+        self.play(LaggedStartMap(FadeOut,text_grp,shift=RIGHT*2),
+                LaggedStartMap(FadeIn,tex_grp,shift=RIGHT*2),run_time=1)
+        self.wait()
+        self.play(LaggedStartMap(FadeOut,VGroup(title2,brace),shift=LEFT,run_time=0.5),
+                 tex_grp.animate.set_anim_args(run_time=1.5)
+                 .scale(0.7).arrange(DOWN,aligned_edge=LEFT,buff=0.5).to_corner(UL))
+        
+        # check matrix 
+        mat=Matrix([[Tex(R"\cos \theta"),Tex(R"-\sin \theta"),Tex(R'0')],
+                    [Tex(R"\sin \theta"),Tex(R"\cos \theta") ,Tex(R'0')],
+                    [Tex(R'0')          ,Tex(R'0')           ,Tex(R'1')]])
+
+        color_palette=[RED,BLUE,YELLOW]
+        for row, color in zip(mat.rows, color_palette):
+            row.set_color(color)
+        mat_t=Matrix(list(map(list, zip(*mat.deepcopy().get_mob_matrix()))))
+        mat_t.to_edge(RIGHT)
+        mats=VGroup(mat,mat_t).arrange(RIGHT)
+        mat.save_state()
+        mat.center()
+        text_A=Tex('A',font_size=60)
+        text_A.always.next_to(mat,UP)
+        text_A.suspend_updating()
+        self.play(LaggedStartMap(Write,VGroup(mat,text_A),lag_ratio=0.5),run_time=1)
+        text_A.resume_updating()
+
+        # transpose animation
+        run_time=1
+        row=col=0
+        text_A_T=Tex(R'A^\intercal',t2c={R"\intercal":TEAL},font_size=60)
+        text_A_T.next_to(mat_t,UP)
+        self.play(mat.animate.restore())
+        self.play(Write(mat_t.brackets[0]),Write(text_A_T))
+        self.play(LaggedStart(
+            TransformMatchingStrings(mat.get_row(row)[0].copy(),mat_t.get_column(col)[0]),
+            TransformMatchingStrings(mat.get_row(row)[1].copy(),mat_t.get_column(col)[1]),
+            TransformMatchingStrings(mat.get_row(row)[2].copy(),mat_t.get_column(col)[2]),
+            lag_ratio=0.02),run_time=run_time)
+        row=col=1
+        self.play(LaggedStart(
+            TransformMatchingStrings(mat.get_row(row)[0].copy(),mat_t.get_column(col)[0]),
+            TransformMatchingStrings(mat.get_row(row)[1].copy(),mat_t.get_column(col)[1]),
+            TransformMatchingStrings(mat.get_row(row)[2].copy(),mat_t.get_column(col)[2]),
+            lag_ratio=0.02),run_time=run_time)
+        row=col=2
+        self.play(LaggedStart(
+            TransformMatchingStrings(mat.get_row(row)[0].copy(),mat_t.get_column(col)[0]),
+            TransformMatchingStrings(mat.get_row(row)[1].copy(),mat_t.get_column(col)[1]),
+            TransformMatchingStrings(mat.get_row(row)[2].copy(),mat_t.get_column(col)[2]),
+            lag_ratio=0.02),run_time=run_time)
+        self.play(Write(mat_t.brackets[1]),run_time=0.5)
+
+
+        # multiply animation
+        tex_grp.fix_in_frame()
+        self.play(frame.animate.reorient(0, 0, 0, (1.88, 0.36, 0.0), 9.61))
+
+        # multi_layout
+        equal_sign=Tex(R'=')
+        equal_sign.next_to(mat_t,RIGHT)
+        mat_result=Matrix([[1,0,0],[0,1,0],[0,0,1]])
+        mat_result.elements[0].set_color(color_palette[0])
+        mat_result.elements[4].set_color(color_palette[1])
+        mat_result.elements[8].set_color(color_palette[2])
+        mat_result.next_to(equal_sign,RIGHT)
+        self.play(Write(equal_sign),run_time=0.5)
+
+        # ani
+        def create_temp_multiply(part1,part2,part3,result,color=RED):
+            part1=Tex(part1).set_color(color)
+            part2=Tex(part2).set_color(color)
+            part3=Tex(part3).set_color(color)
+            result=Tex(result).set_color(color)
+            plus1=Tex('+')
+            plus2=Tex('+')
+            equal=Tex('=')
+            temp_grp=VGroup(part1,plus1,part2,plus2,part3,equal,result)
+            temp_grp.arrange(RIGHT,aligned_edge=DOWN)
+            equal.match_y(plus1)
+            temp_grp.next_to(VGroup(mat,mat_t),UP,buff=0.5)
+            return temp_grp
+
+        def mutiply_animation(temp_grp,row=0,col=0,run_time=1):
+            temp_grp=temp_grp
+            self.play(FlashAround(mat.get_row(row)),
+                FlashAround(mat_t.get_column(col)),run_time=run_time)
+            self.play(
+                LaggedStart(
+                TransformFromCopy(VGroup(mat.get_row(row)[0],mat_t.get_column(col)[0]),temp_grp[0]),
+                TransformFromCopy(VGroup(mat.get_row(row)[1],mat_t.get_column(col)[1]),temp_grp[2]),
+                TransformFromCopy(VGroup(mat.get_row(row)[2],mat_t.get_column(col)[2]),temp_grp[4]),
+                lag_ratio=0.5),run_time=run_time,
+                )
+            self.play(LaggedStart(
+                LaggedStartMap(Write,VGroup(temp_grp[1],temp_grp[3],temp_grp[5]),lag_ratio=0.2),
+                TransformFromCopy(VGroup(temp_grp[0],temp_grp[2],temp_grp[4]),temp_grp[6],path_arc=-1),
+                lag_ratio=0.3),run_time=run_time)
+            self.play(TransformFromCopy(temp_grp[6],mat_result.elements[row*3+col]),
+                LaggedStartMap(FadeOut,temp_grp,shift=RIGHT),run_time=run_time/2)
+
+        temp_grp0=create_temp_multiply(R"\cos^2\theta",R"\sin^2\theta",R'0',R'1',RED)
+        temp_grp1=create_temp_multiply(R"\cos\theta\sin\theta",R"(-\sin\theta\cos\theta)",R'0',R'0',WHITE)
+        temp_grp2=create_temp_multiply(R"0",R"0",R'0',R'0',WHITE)
+        temp_grp3=create_temp_multiply(R"\sin\theta\cos\theta",R"(-\cos\theta\sin\theta)",R'0',R'0',WHITE)
+        temp_grp4=create_temp_multiply(R"\sin^2\theta",R"\cos^2\theta",R'0',R'1',BLUE)
+        temp_grp5=create_temp_multiply(R"0",R"0",R'0',R'0',WHITE)
+        temp_grp6=create_temp_multiply(R"0",R"0",R'0',R'0',WHITE)
+        temp_grp7=create_temp_multiply(R"0",R"0",R'0',R'0',WHITE)
+        temp_grp8=create_temp_multiply(R"0",R"0",R'1',R'1',YELLOW)
+
+        text_A.clear_updaters()
+        text_A_T.clear_updaters()
+        self.play(Write(mat_result.brackets[0]),
+                text_A.animate.next_to(mat,DOWN),
+                text_A_T.animate.next_to(mat_t,DOWN),run_time=1)
+        mutiply_animation(temp_grp0,0,0,run_time=1.5)
+        mutiply_animation(temp_grp1,0,1,run_time=1.5)
+        mutiply_animation(temp_grp2,0,2,run_time=1)
+        mutiply_animation(temp_grp3,1,0,run_time=1)
+        mutiply_animation(temp_grp4,1,1,run_time=1)
+        mutiply_animation(temp_grp5,1,2,run_time=1)
+        mutiply_animation(temp_grp6,2,0,run_time=1)
+        mutiply_animation(temp_grp7,2,1,run_time=1)
+        mutiply_animation(temp_grp8,2,2,run_time=1)
+
+        # identity
+        text_I=Tex(R"I",font_size=60)
+        text_I.next_to(mat_result,DOWN)
+        text_A_copy=text_A.copy()
+        check_grp=VGroup(text_A_copy,text_A_T,equal_sign,text_I)
+        check_mark1=Tex(R"\checkmark")
+        check_mark1.set_color(RED)
+        check_mark1.fix_in_frame()
+        check_mark1.next_to(tex_orthogonal,RIGHT)
+        text_A.always.next_to(mat,DOWN)
+        self.play(Write(mat_result.brackets[1]),Write(text_I),run_time=0.5)
+        self.play(LaggedStartMap(FadeOut,VGroup(mat_t,mat_result),shift=RIGHT),
+            mat.animate.center(),frame.animate.to_default_state(),
+            check_grp.animate.arrange(RIGHT).fix_in_frame().next_to(check_mark1,RIGHT,buff=1))
+        self.play(ReplacementTransform(check_grp,check_mark1))
+        # self.play(Write(check_mark1,run_time=1.5),FadeOut(check_grp,shift=UP))
+
+        # determinant-arrange
+        left_vert=Line(start=mat.get_corner(DL),end=mat.get_corner(UL),color=TEAL)
+        left_vert.scale(1.1)
+        right_vert=Line(start=mat.get_corner(DR),end=mat.get_corner(UR),color=TEAL)
+        right_vert.scale(1.1)
+        verts=VGroup(left_vert,right_vert)
+        tex_det2=Tex(R"\det")
+        tex_brackets=Tex(R"(\hspace{9pt})")
+        tex_det2.next_to(text_A,LEFT).set_color(TEAL)
+        tex_brackets.next_to(tex_det2,RIGHT,buff=0.12).set_color(TEAL)
+        text_A.clear_updaters()
+        grp_det_A=VGroup(tex_det2,tex_brackets,text_A)
+        grp_det_A.suspend_updating()
+        mat_elements_grp=VGroup(*mat.elements)
+        grp_det_A.always.next_to(mat_elements_grp,DOWN,buff=0.2)
+        left_vert.always.match_height(mat_elements_grp).next_to(mat_elements_grp,LEFT)
+        right_vert.always.match_height(mat_elements_grp).next_to(mat_elements_grp,RIGHT)
+        self.play(FadeTransform(mat.brackets,verts),Write(tex_det2),Write(tex_brackets))
+        self.play(mat_elements_grp.animate.arrange_in_grid(3,3,buff=0.2).set_color(WHITE),
+            grp_det_A.animate.resume_updating())
+        grp_det_A.resume_updating()
+        self.play(mat_elements_grp.animate.to_edge(UP))
+
+        # determinant--calculate
+        equal_sign=Tex(R'=')
+        equal_sign.scale(1.5)
+        path=VMobject()
+        path.set_points(mat.get_row(0)[2].get_center())
+        path.add_arc_to(mat.get_row(2)[1].get_center(),angle=-TAU*6/10)
+        path.add_line_to(mat.get_row(1)[0].get_center())
+        coefficient1=Tex('0')
+        det1=MatrixDet([[Tex(R"-\sin\theta"),Tex(R'0')],
+                        [Tex(R'\cos\theta'),Tex(R'0')]],v_buff=0.25,h_buff=0,bracket_v_buff=0.1)
+        sign1=Tex('+')
+        coefficient2=Tex('0')
+        det2=MatrixDet([[Tex(R'\cos\theta'),Tex(R"0")],
+                        [Tex(R'\sin\theta'),Tex(R'0')]],v_buff=0.25,h_buff=0,bracket_v_buff=0.1)
+        sign2=Tex('+')
+        coefficient3=Tex('1')
+        det3=MatrixDet([[Tex(R'\cos\theta'),Tex(R"-\sin\theta")],
+                        [Tex(R'\sin\theta'),Tex(R'\cos\theta')]],v_buff=0.25,h_buff=0.2,bracket_v_buff=0.1)
+        det_grp=VGroup(equal_sign,coefficient1,det1,sign1,coefficient2,det2,sign2,coefficient3,det3).arrange(RIGHT)
+        line1=Line(mat.get_row(2)[0].get_top()+UP*0.05,mat.get_row(2)[0].get_top()+UP*1.5)
+        line2=Line(mat.get_row(2)[0].get_right()+RIGHT*0.05,mat.get_row(2)[0].get_right()+RIGHT*3.8)
+        line3=Line(mat.get_row(2)[1].get_top()+UP*0.05,mat.get_row(2)[1].get_top()+UP*1.5)
+        line4=Line(mat.get_row(2)[1].get_right()+RIGHT*0.05,mat.get_row(2)[1].get_right()+RIGHT*2.3)
+        line5=Line(mat.get_row(2)[1].get_left()+LEFT*0.05,mat.get_row(2)[1].get_left()+LEFT*2.9)
+        line6=Line(mat.get_row(2)[2].get_top()+UP*0.05,mat.get_row(2)[2].get_top()+UP*1.5)
+        line7=Line(mat.get_row(2)[2].get_left(),mat.get_row(2)[2].get_left()+LEFT*4.3)
+        line_grp1=VGroup(line1,line2)
+        line_grp2=VGroup(line3,line4,line5)
+        line_grp3=VGroup(line6,line7)
+        self.play(Write(equal_sign))
+        self.play(*map(Write,line_grp1),
+            VGroup( mat.get_row(0)[0],mat.get_row(1)[0],mat.get_row(2)[1],mat.get_row(2)[2])\
+            .animate.set_opacity(0.5) )
+        self.play(TransformFromCopy(mat.get_row(2)[0],coefficient1),
+            TransformMatchingParts( VGroup(mat.get_row(0)[1:],mat.get_row(1)[1:]).copy(),
+                VGroup(*det1.elements) ),Write(det1.brackets) )
+        self.play(Write(sign1),*map(Uncreate,line_grp1),VGroup(*mat.elements).animate.set_opacity(1))
+        self.play(*map(Write,line_grp2),
+            VGroup( mat.get_row(0)[1],mat.get_row(1)[1],mat.get_row(2)[0],mat.get_row(2)[2])\
+            .animate.set_opacity(0.5) )
+        self.play(TransformFromCopy(mat.get_row(2)[1],coefficient2),
+            TransformMatchingParts( VGroup(mat.get_row(0)[0],mat.get_row(0)[2],
+                mat.get_row(1)[0],mat.get_row(1)[2]).copy(),
+                VGroup(*det2.elements) ),Write(det2.brackets) )
+        self.play(Write(sign2),*map(Uncreate,line_grp2),VGroup(*mat.elements).animate.set_opacity(1))
+        self.play(*map(Write,line_grp3),
+            VGroup( mat.get_row(0)[2],mat.get_row(1)[2],mat.get_row(2)[0],mat.get_row(2)[1])\
+            .animate.set_opacity(0.5) )
+        self.play(TransformFromCopy(mat.get_row(2)[2],coefficient3),
+            TransformMatchingParts( VGroup(mat.get_row(0)[0],mat.get_row(0)[1],
+                mat.get_row(1)[0],mat.get_row(1)[1]).copy(),
+                VGroup(*det3.elements) ),Write(det3.brackets) )
+        self.play(*map(Uncreate,line_grp3),VGroup(*mat.elements).animate.set_opacity(1))
+
+        # cancel equation
+        line1=Line(end=RIGHT*2.5).rotate(-30*DEGREES).set_color(RED)
+        line1.move_to(det1)
+        line2=line1.copy().move_to(det2)
+        self.play( LaggedStart(Write(line1),Write(line2),lag_ratio=0.5),
+        LaggedStart(VGroup(coefficient1,det1).animate.set_opacity(0.5),
+        VGroup(sign1,coefficient2,det2).animate.set_opacity(0.5),lag_ratio=0.5) )
+        self.play( LaggedStart(LaggedStartMap(FadeOut,VGroup(
+                coefficient1,line1,det1,sign1,coefficient2,line2,det2,sign2,coefficient3
+            ),shift=LEFT*3),det3.animate.next_to(equal_sign,RIGHT) ,lag_ratio=0.5))
+        
+        # cos^2+sin^2
+        path=VMobject(stroke_color=TEAL,stroke_width=5)\
+            .set_points_smoothly([det3.elements[0].get_center(),
+            det3.elements[3].get_center(),det3.elements[1].get_center(),
+            det3.elements[2].get_center(),])
+        path.close_path()
+        dot=GlowDot(path.get_start(),radius=0.3)
+        tt=TracingTail(dot,time_traced=0.7)
+        eqn=Tex(R"\cos^2\theta-(-\sin^2\theta)")
+        eqn[5].set_color(RED)
+        equal_sign2=equal_sign.copy()
+        equal_sign2.next_to(equal_sign,DOWN,buff=1.5)
+        eqn.next_to(equal_sign2,RIGHT)
+        self.add(tt)
+        self.play(MoveAlongPath(dot,path),Write(equal_sign2),Write(eqn[5]))
+        self.play(LaggedStart(
+            AnimationGroup(FadeTransform(det3.elements[0][R"\cos"].copy(),eqn[0:3]),
+                           FadeTransform(det3.elements[0][R"\theta"].copy(),eqn[4]),
+                           det3.elements[0].animate.set_opacity(0.5),
+                           det3.elements[3].animate.set_opacity(0.5)),
+            TransformFromCopy(det3.elements[3],eqn[3]),lag_ratio=0.5),run_time=2 )
+        self.play(LaggedStart(
+            MoveAlongPath(dot,path),
+            AnimationGroup(FadeTransform(det3.elements[1][R"-\sin"].copy(),eqn[7:11]),
+                           FadeTransform(det3.elements[1][R"\theta"].copy(),eqn[12]),
+                           det3.elements[1].animate.set_opacity(0.5),
+                           det3.elements[2].animate.set_opacity(0.5)),
+            TransformFromCopy(det3.elements[2],eqn[11]),
+            AnimationGroup(Write(eqn[6]),Write(eqn[-1])),lag_ratio=0.5),run_time=2 )
+        plus=Tex(R'+').move_to(eqn[5])
+        self.play(FadeOut(dot),ReplacementTransform(VGroup(eqn[5:8],eqn[-1]),plus),
+                eqn[8:13].animate.next_to(plus,RIGHT).match_y(eqn[:5]))
+        one=Tex("1").next_to(equal_sign2)
+        self.play(ReplacementTransform(VGroup(eqn,plus),one))
+        self.play(LaggedStartMap(FadeOut,VGroup(equal_sign,det3),shift=LEFT),
+            VGroup(equal_sign2,one).animate.next_to(grp_det_A,RIGHT))
+        check_mark2=check_mark1.copy().next_to(tex_det)
+        grp_det_A.clear_updaters()
+        self.play(ReplacementTransform(VGroup(grp_det_A,equal_sign2,one),check_mark2))
+        self.play(LaggedStartMap(FadeOut,VGroup(tex_grp,check_mark1,check_mark2),shift=LEFT))
+        
+        # move matrix to corner
+        mat.brackets.set_height(VGroup(*mat.elements).get_height()+0.3)
+        mat.brackets.set_width(VGroup(*mat.elements).get_width()+0.5)
+        mat.brackets.move_to(VGroup(*mat.elements)).set_color(TEAL)
+        self.play(FadeTransform(verts,mat.brackets),run_time=0.5,rate_func=linear)
+        self.play(mat.animate.to_corner(UL,buff=0.2),run_time=1)
+        mat.fix_in_frame()
+
+
+        # ax
+        ax=ThreeDAxesCustom(
+            x_range = (-4.0, 4.0, 1.0),
+            y_range = (-4.0, 4.0, 1.0),
+            z_range = (-4.0, 4.0, 1.0),)
         ax.add_axis_labels()
+        ax.apply_depth_test()
+        nbp=NumberPlaneCustom( 
+            x_range = (-4.0, 4.0, 1.0),
+            y_range = (-4.0, 4.0, 1.0),)
+        self.play(Write(ax),frame.animate.reorient(28, 44, 0, (-0.03, 0.43, 0.23), 9.17),
+            Write(nbp))
+
+        # pick a point
+        arrow=Arrow(ax.c2p(0,0,0),ax.c2p(2,0,2),buff=0)
+        arrow.set_opacity(0.5)
+        glow=GlowDot(ax.c2p(2,0,2),radius=0.4)
+        tt=TracingTail(glow)
+        path=Arc(angle=TAU,radius=2)
+        path.set_z(2)
+        self.play(GrowArrow(arrow),ShowCreation(glow))
+        arrow.add_updater(lambda m: m.put_start_and_end_on(ax.c2p(0,0,0),glow.get_center()))
+        arrow.always.set_perpendicular_to_camera(frame)
+        self.add(tt)
+        def glow_updater(m,dt):
+            # Clamp pfp to prevent it from exceeding the bounds
+            m.pfp = min(m.pfp + dt * 1/2, 1)   # 1 cycle every 2 seconds
+            # Reset pfp if close to 1
+            if abs(1 - m.pfp) < 1e-15:
+                m.pfp = 0
+            # Update position along the path
+            position = path.pfp(m.pfp)
+            m.move_to(position)
+        glow.pfp=0
+        glow.add_updater(glow_updater)
+        self.wait(2)
+        self.play(frame.animate.reorient(0, 0, 0, (0,0,0), 9.69),run_time=3)
+        self.play(frame.animate.reorient(29, 39, 0, (0.1, 0.13, 0.0), 9.69),run_time=3)
+
+        # matrix change
+        tex00=Tex('0')
+        tex01=Tex(R'-1')
+        tex10=Tex('1')
+        tex11=Tex('0')
+        tex00.move_to(mat.get_row(0)[0])
+        tex01.move_to(mat.get_row(0)[1])
+        tex10.move_to(mat.get_row(1)[0])
+        tex11.move_to(mat.get_row(1)[1])
+        tex_change=VGroup(tex00,tex01,tex10,tex11)
+        tex_change.set_color(YELLOW)
+        tex_change.fix_in_frame()
+        tex_90degree1=Tex(R"90^\circ")
+        tex_90degree1.fix_in_frame()
+        tex_90degree1.set_color(YELLOW)
+        tex_90degree1.scale(0.9)
+        tex_90degree1.move_to(mat.get_row(0)[0][R"\theta"].get_center()+RIGHT*0.1)
+        tex_90degree2=tex_90degree1.copy().move_to(mat.get_row(0)[1][R"\theta"].get_center()+RIGHT*0.1)
+        tex_90degree3=tex_90degree1.copy().move_to(mat.get_row(1)[0][R"\theta"].get_center()+RIGHT*0.1)
+        tex_90degree4=tex_90degree1.copy().move_to(mat.get_row(1)[1][R"\theta"].get_center()+RIGHT*0.1)
+        tex_90degrees=VGroup(tex_90degree1,tex_90degree2,tex_90degree3,tex_90degree4)
+        self.play(LaggedStartMap(FlashAround,
+            VGroup(mat.get_row(0)[0][R"\theta"],mat.get_row(0)[1][R"\theta"],
+                mat.get_row(1)[0][R"\theta"],mat.get_row(1)[1][R"\theta"]),
+            lag_ratio=0))
+        self.play(
+            ReplacementTransform(mat.get_row(0)[0][R"\theta"],tex_90degree1),
+            ReplacementTransform(mat.get_row(0)[1][R"\theta"],tex_90degree2),
+            ReplacementTransform(mat.get_row(1)[0][R"\theta"],tex_90degree3),
+            ReplacementTransform(mat.get_row(1)[1][R"\theta"],tex_90degree4),)
+        self.play(LaggedStart(
+            Transform(VGroup(mat.get_row(0)[0],tex_90degree1),tex00),
+            Transform(VGroup(mat.get_row(0)[1],tex_90degree2),tex01),
+            Transform(VGroup(mat.get_row(1)[0],tex_90degree3),tex10),
+            Transform(VGroup(mat.get_row(1)[1],tex_90degree4),tex11),lag_ratio=0.3),)
+
+        # matrix change2
+        mat2=Matrix([[0,-1,0],[1,0,0],[0,0,1]],v_buff=0.3,h_buff=0.3)
+        mat2.brackets.set_color(TEAL)
+        mat2.get_row(0)[:2].set_color(YELLOW)
+        mat2.get_row(1)[:2].set_color(YELLOW)
+        mat2.to_corner(UL)
+        mat2.fix_in_frame()
+        self.play(FadeTransform(mat,mat2),FadeOut(tex_90degree2),FadeOut(tt),
+            frame.animate.to_default_state(),run_time=0.8)
+        mat=mat2
+        
+
+        # mat.get_row(0)[1].become(tex01)
+        # mat_elements=VGroup(*mat.elements)
+        # self.play(mat_elements.animate.arrange_in_grid(3,3,buff=0.3).to_corner(UL),)
+        # self.play(mat.brackets[0].animate.next_to(mat_elements,LEFT),
+        #             mat.brackets[1].animate.next_to(mat_elements,RIGHT),
+
+        #             FadeOut(tt),
+        #             frame.animate.to_default_state(),run_time=0.8)
+
+        # 90 degrees
+        glow.suspend_updating()
+        glow_coord=np.round(glow.get_center(),2).reshape(3,1)
+        glow_mat=Matrix(glow_coord)
+        mat_arr=np.array([[0,-1,0],[1,0,0],[0,0,1]])
+        result_mat_arr=np.dot(mat_arr,glow_coord)
+        result_mat=Matrix(result_mat_arr)
+        equal_sign=Tex(R'=')
+        right_grp=VGroup(glow_mat,equal_sign,result_mat).arrange(RIGHT)
+        right_grp.set_height(mat.get_height())
+        right_grp.next_to(mat,RIGHT)
+        right_grp.fix_in_frame()
+        result_glow=GlowDot(ax.c2p(*result_mat_arr.reshape(1,3)[0]),radius=0.4)
+        result_glow.set_opacity(0.5)
+        # elbow.set_points_as_corners(arrow.pfp(0.3),arrow_result_glow.pfp(0.3))
+        self.wait()
+        self.play(FadeTransform(glow.copy(),glow_mat))
+        self.play(LaggedStartMap(Write,VGroup(equal_sign,result_mat),lag_ratio=0.3 ))
+
+        # fadeout
+        self.play(FadeOutToPoint(result_mat.unfix_from_frame(),ax.c2p(*result_mat_arr.reshape(1,3)[0])),
+                FadeOut(glow_mat,shift=UP),FadeIn(result_glow),
+                FadeOut(equal_sign,shift=UP))
+
+        # say 90 degrees
+        arrow_result_glow=Arrow(ax.c2p(0,0,0),ax.c2p(*result_mat_arr.reshape(1,3)[0]),buff=0).set_opacity(0.5)
+        arrow_result_glow.always.set_perpendicular_to_camera(frame)
+        arrow_result_glow.clear_updaters()
+        dashedline1=DashedLine(ax.c2p(0,0,2),ax.c2p(*arrow.get_end()))
+        dashedline2=DashedLine(ax.c2p(0,0,2),ax.c2p(*arrow_result_glow.get_end()))
+        albow=VMobject()
+        line1=Line(ax.c2p(0,0,2),ax.c2p(*arrow.get_end()))
+        line2=Line(ax.c2p(0,0,2),ax.c2p(*arrow_result_glow.get_end()))
+        point_start=line1.pfp(0.2)
+        point_start[2]=0
+        point_end=line2.pfp(0.2)
+        point_end[2]=0
+        point_middle=point_start+point_end
+        albow.set_points_as_corners([point_start,point_middle,point_end] )
+        albow.set_z(2)
+        tex90=Tex(R"90^\circ")
+        tex90.rotate(PI/4,axis=RIGHT)
+        tex90.next_to(albow,RIGHT)
+        # self.add(dashedline1,dashedline2)
+        # self.add(albow)
+        self.play(GrowArrow(arrow_result_glow))
+        self.play(Write(albow))
+        self.play(Write(dashedline1),Write(dashedline2),
+            frame.animate.reorient(-13, 28, 0),Write(tex90))
+        self.play(LaggedStartMap(FadeOut,Group(dashedline1,dashedline2,albow,tex90,
+            result_glow,arrow,arrow_result_glow)))
+
+        # add cloud
+        sp=Sphere(radius=2,resolution=(20,20))
+        points=sp.get_points()
+        cloud=DotCloud(points)
+        mesh=SurfaceMesh(sp,resolution=(20,20))
         im=ImageMobject('kun.jpg')
-        surface_base=Sphere(radius=5,resolution=(101,101))
-        texture=TexturedSurface(surface_base,'basketball.jpg')
-        arrow_x=Arrow(RIGHT*4.8,RIGHT*8,thickness=20,fill_color=GREEN)
-        arrow_y=Arrow(UP*4.8,UP*8,thickness=20,fill_color=RED)
-        arrow_z=Arrow(OUT*4.8,OUT*8,thickness=20,fill_color=BLUE)
-        arrow_z.rotate(PI/2,axis=OUT)
-        arrows=VGroup(arrow_x,arrow_y,arrow_z)
-        arrows.apply_depth_test()
-        frame.reorient(29, 41, 0, (0.41, 1.06, 0.56), 14.22)
-        tex_x=Tex('x',font_size=300)
-        tex_x.next_to(arrow_x,RIGHT).match_color(arrow_x)
-        tex_y=Tex('y',font_size=300)
-        tex_y.next_to(arrow_y,UP).match_color(arrow_y)
-        tex_z=Tex('z',font_size=300)
-        tex_z.next_to(arrow_z,OUT,buff=1).match_color(arrow_z)
-        tex_z.rotate(PI/2,axis=RIGHT)
-        texs=VGroup(tex_x,tex_y,tex_z)
-        basketball=Group(texture,arrows,texs)
+        surface_base=Sphere(radius=2,resolution=(101,101))
+        basketball=TexturedSurface(surface_base,'basketball.jpg')
+        mesh[10:20].reverse_points()
+
+        # group
+        n_groups = 20
+        group_size = len(cloud.data) // n_groups
+        groups = [cloud.data[i * group_size:(i + 1) * group_size] for i in range(n_groups)]
+        cloud_grp1=Group()
+        cloud_grp2=Group()
+        for i in range(10):
+            cloud1 = cloud.copy()
+            cloud2 = cloud.copy()
+            cloud1.data=np.concatenate([groups[i]],axis=0)
+            cloud2.data=np.concatenate([groups[10+i][::-1]],axis=0)
+            cloud1.note_changed_data()
+            cloud2.note_changed_data()
+            cloud_grp1.add(cloud1)
+            cloud_grp2.add(cloud2)
+    
+        whole_time=3
+        run_time=whole_time/20
+        frame.add_ambient_rotation(angular_speed=-1 * DEG)
+        for i in range(10):
+            self.play(MoveAlongPath(glow,mesh[i]),
+                ShowCreation(cloud_grp1[i]),rate_func=linear,run_time=run_time)
+            self.play(MoveAlongPath(glow,mesh[10+i]),
+                ShowCreation(cloud_grp2[i]),rate_func=linear,run_time=run_time)
+
+        # mesh
+        self.play(ShowCreation(mesh),run_time=3)
+        self.play(ShowCreation(basketball),Uncreate(mesh),
+            *map(FadeOut,cloud_grp1),FadeOut(glow),Uncreate(nbp),*map(FadeOut,cloud_grp2),
+            frame.animate.reorient(-42, 41, 0, (0.45, 0.24, 0.42), 8.00),run_time=3)
+        frame.clear_updaters()
+
+        # apply matrix to basketball
+        def attach_to_ball(point):
+            r=2
+            x=point[0]
+            y=point[1]
+            z=point[2]
+            a=np.sqrt((x**2+y**2+z**2)/(r**2))
+            return np.array([x/a,y/a,z/a])
+        def get_ball_coord(x,y):
+            r=2
+            z=r**2-x**2-y**2
+            return np.sqrt(z)
+        def get_perpendicular_vector_to_frame(frame):
+            rotmat=frame.get_inv_view_matrix()[:3,:3]
+            return np.dot(rotmat,OUT)
+        mat_attached_grp=VGroup()
+        hint_arrow=CurvedArrow(ax.c2p(0,-2,2),ax.c2p(2,0,2),angle=PI/2)
+        hint_arrow.set_color(YELLOW)
+        hint_arrow.apply_depth_test()
+        line1=ax.get_line_from_axis_to_point(2,hint_arrow.get_end())
+        line2=ax.get_line_from_axis_to_point(2,hint_arrow.get_start())
+        elbow=Elbow(width=0.5)
+        elbow.rotate(-PI/2,about_point=ORIGIN).shift(OUT*2)
+        for i in range(4):
+            mat_attached=mat.deepcopy()
+            mat_attached.scale(0.8)
+            mat_attached.unfix_from_frame()
+            vector=np.array([-2,0,2])
+            mat_attached.move_to(2*normalize(vector))
+            mat_attached.rotate(-PI/2)
+            mat_attached.rotate(angle_between_vectors(OUT,vector),axis=DOWN)
+            mat_attached.apply_function(attach_to_ball)
+            self.play(TransformFromCopy(mat,mat_attached),run_time=1)
+            if i==0:
+                self.play(ShowCreation(hint_arrow),ShowCreation(line1),
+                    ShowCreation(line2),ShowCreation(elbow),run_time=1)
+            mat_attached_grp.add(mat_attached)
+            self.play(basketball.animate.set_anim_args(path_arc=PI/2)\
+                .apply_matrix(mat_arr),
+                mat_attached_grp.animate.set_anim_args(path_arc=PI/2)\
+                .apply_matrix(mat_arr))
+        # fadeout
+        self.play(FadeOut(mat,shift=LEFT),
+            LaggedStartMap(FadeOut,
+            Group(hint_arrow,line1,line2,ax,elbow,mat_attached_grp,basketball),shift=RIGHT,
+            lag_ratio=0),)
+
+
+
+
+
+
+
+
+        # start=2
+        # end=5
+        # thickness=10
+        # buff=0.2
+        
+        # start=start-0.2
+        # arrow_x=Arrow(start=RIGHT*start,end=RIGHT*end,thickness=thickness,fill_color=RED)
+        # arrow_y=Arrow(start=UP*start,end=UP*end,thickness=thickness,fill_color=GREEN)
+        # arrow_z=Arrow(start=OUT*start,end=OUT*end,thickness=thickness,fill_color=BLUE)
+        # arrow_z.rotate(PI/2,axis=OUT)
+        # arrows=VGroup(arrow_x,arrow_y,arrow_z)
+        # tex_x=Tex('x',font_size=thickness*10)
+        # tex_x.next_to(arrow_x,RIGHT,buff=buff).match_color(arrow_x)
+        # tex_y=Tex('y',font_size=thickness*10)
+        # tex_y.next_to(arrow_y,UP,buff=buff).match_color(arrow_y)
+        # tex_z=Tex('z',font_size=thickness*10)
+        # tex_z.next_to(arrow_z,OUT,buff=(buff+0.3)).match_color(arrow_z)
+        # tex_z.rotate(PI/2,axis=RIGHT)
+        # texs=VGroup(tex_x,tex_y,tex_z)
+        # grp=VGroup(arrows,texs)
+        # grp.apply_depth_test()
+
+
+        # dot=Dot(ORIGIN).set_color(RED)
+        # self.add(dot)
+        # im_surface_base=Surface(u_range=[-2,2],v_range=[-2,2])
+        # im_surface=TexturedSurface(im_surface_base,'kun.jpg')
+        # self.add(im_surface)
+        # self.play(GrowFromCenter(basketball),ShrinkToCenter(im_surface))
+        # self.play(frame.animate.reorient(14, 55, 0, (-0.03, 0.27, 0.46), 11.11))
+        # frame.add_ambient_rotation(angular_speed=3 * DEG)
+        # self.play(LaggedStartMap(GrowArrow,grp[0]),
+        #         LaggedStartMap(Write,grp[1]),run_time=3)
+        # frame.clear_updaters()
 
         # matrix
-        rotmat=Tex(R"""\left[\enspace\begin{matrix}
-                    \cos \theta & -\sin \theta \\[1.2mm]
-                    \sin \theta & \cos \theta
-                    \end{matrix}\enspace
-                    \right]""",
-                    t2c={R"\theta":YELLOW})
-        rotmat.to_corner(UL,buff=0.5)
-        def get_rotmat(theta):
-            degrees=theta*DEGREES
-            rot_mat=np.array([[np.cos(degrees),-np.sin(degrees)],
-                            [np.sin(degrees),np.cos(degrees)]])
-            m=Tex(Rf"""\left[\enspace\begin{{matrix}}
-                    {round(np.cos(degrees),2)} & {-round(np.sin(degrees),2)} \\[1.2mm]
-                    {round(np.sin(degrees),2)} & {round(np.cos(degrees),2)} 
-                    \end{{matrix}}\enspace
-                    \right]""")
-            # m=Matrix(rot_mat)
-            m.to_corner(UR)
-            return m
-        rotmat2=get_rotmat(30).match_height(rotmat)
-        self.add(rotmat)
-        self.add(rotmat2)
+        # mat_z=Matrix([[Tex(R'\cos\theta'),Tex(R'-\sin\theta'),0],
+        #            [Tex(R'\sin\theta'),Tex(R'\cos\theta'),0],
+        #            [0,0,1]])
+        # mat_y=Matrix([[Tex(R'\cos\theta'),0,Tex(R'\sin\theta')],
+        #                 [0,1,0],
+        #            [Tex(R'-\sin\theta'),0,Tex(R'\cos\theta')]])
+        # mat_x=Matrix([ [1,0,0],
+        #                 [0,Tex(R'\cos\theta'),Tex(R'-\sin\theta')],
+        #                 [0,Tex(R'\sin\theta'),Tex(R'\cos\theta') ],])
+        # matrices=VGroup(mat_x,mat_y,mat_z).arrange(RIGHT)
+        # matrices.fix_in_frame()
+        # matrices.scale(0.5)
+        # matrices.to_corner(UL)
+        # self.add(matrices)
+        # self.play(frame.animate.reorient(23, 55, 0, (0.24, 1.68, 2.16), 11.11))
 
-        arrow0=Arrow(rotmat.get_right(),rotmat2.get_left())
-        self.add(arrow0)
-        tex_theta=Tex(R"""\theta=30^\circ""")
-        tex_theta.next_to(arrow0,UP)
-        self.add(tex_theta)
-        self.add(basketball)
-        self.add(im)
-        # scale
-        self.add(ax)
-        frame.to_default_state()
-        im.apply_depth_test()
-        basketball.center()
-        basketball.shift(LEFT)
-        basketball.shift(DOWN)
-        basketball.shift(IN*0.5)
-        basketball.scale(0.15)
-        texture.center()
-        # basketball.rotate(70*DEGREES,axis=OUT)
-        # basketball.center()
+        # surround arrow
+        # arrow_x2=Arrow(start=arrow_x.get_center()+UP*1.5,
+        #     end=arrow_x.get_center()+DOWN*1.5,thickness=thickness,fill_color=RED,
+        #     path_arc=-TAU*3/4)
+        # arrow_x2.rotate(PI/2,axis=DOWN)
+        # arrow_x2.move_to(arrow_x.get_center())
+        # self.add(arrow_x2)
 
+        # arrow_y2=Arrow(start=arrow_y.get_center()+RIGHT*1.5,
+        #     end=arrow_y.get_center()+LEFT*1.5,thickness=thickness,fill_color=GREEN,
+        #     path_arc=-TAU*3/4)
+        # arrow_y2.rotate(PI/2,axis=LEFT)
+        # arrow_y2.move_to(arrow_y.get_center())
+        # self.add(arrow_y2)
+
+        # arrow_z2=Arrow(start=arrow_z.get_center()+LEFT*1.5,
+        #     end=arrow_z.get_center()+RIGHT*1.5,thickness=thickness,fill_color=BLUE,
+        #     path_arc=TAU*3/5)
+        # arrow_z2.move_to(arrow_z.get_center())
+        # self.add(arrow_z2)
+        # surround_arrows=VGroup(arrow_x2,arrow_y2,arrow_z2)
+
+
+        # self.add(mesh)
+        # self.add(basketball)
+
+        # sp=Sphere(radius=2,resolution=(50,25))
+        # self.add(sp)
+        # points=sp.get_points()
+        # print(f"sphere has {len(points)} points")
+        # cloud=DotCloud(points)
+        # cloud.next_to(sp,LEFT)
+        # self.add(cloud)
+        # basketball.next_to(sp,RIGHT)
+        # self.add(basketball)
+
+        # low resolution basketball
+        # sp2=Sphere(radius=2,resolution=(20,20))
+        # basketball2=TexturedSurface(sp2,'basketball.jpg')
+        # sp2.next_to(basketball,RIGHT)
+        # basketball2.next_to(sp2,RIGHT)
+        # self.add(sp2,basketball2)
+        # points2=sp2.get_points()
+        # print(f"sphere2 has {len(points2)} points")
+        # cloud2=DotCloud(points2)
+        # cloud2.next_to(basketball2,RIGHT)
+        # self.add(cloud2)
+        # frame.reorient(2, 62, 0, (7.45, 1.17, 1.44), 18.66)
+        # mesh=SurfaceMesh(basketball2,resolution=(20,20))
+        # mesh.move_to(cloud2)
+        # self.add(mesh)
+        # basketball.move_to(mesh)
+
+
+
+
+        # arrow=Arrow(start=)
+        # self.add(arrow)
+        # mesh
+        # mesh=SurfaceMesh(basketball,resolution=(101,51))
+        # self.add(mesh)
+
+
+        
+    
+        # # matrix
+        # rotmat=Tex(R"""\left[\enspace\begin{matrix}
+        #             \cos \theta & -\sin \theta \\[1.2mm]
+        #             \sin \theta & \cos \theta
+        #             \end{matrix}\enspace
+        #             \right]""",
+        #             t2c={R"\theta":YELLOW})
+        # rotmat.to_corner(UL,buff=0.5)
+        # def get_rotmat(theta):
+        #     degrees=theta*DEGREES
+        #     rot_mat=np.array([[np.cos(degrees),-np.sin(degrees)],
+        #                     [np.sin(degrees),np.cos(degrees)]])
+        #     m=Tex(Rf"""\left[\enspace\begin{{matrix}}
+        #             {round(np.cos(degrees),2)} & {-round(np.sin(degrees),2)} \\[1.2mm]
+        #             {round(np.sin(degrees),2)} & {round(np.cos(degrees),2)} 
+        #             \end{{matrix}}\enspace
+        #             \right]""")
+        #     # m=Matrix(rot_mat)
+        #     m.to_corner(UR)
+        #     return m
+        # rotmat2=get_rotmat(30).match_height(rotmat)
+        # self.add(rotmat)
+        # self.add(rotmat2)
+
+        # arrow0=Arrow(rotmat.get_right(),rotmat2.get_left())
+        # self.add(arrow0)
+        # tex_theta=Tex(R"""\theta=30^\circ""")
+        # tex_theta.next_to(arrow0,UP)
+        # self.add(tex_theta)
+        # self.add(basketball)
+        # self.add(im)
 
         pass
+class MatrixDet(Matrix):
+    def create_brackets(self, rows, v_buff: float, h_buff: float) -> VGroup:
+        brackets = Tex("".join((
+            R"\left|\begin{array}{c}",
+            *len(rows) * [R"\quad \\"],
+            R"\end{array}\right|",
+        )))
+        brackets.set_height(rows.get_height() + v_buff)
+        l_bracket = brackets[:len(brackets) // 2]
+        r_bracket = brackets[len(brackets) // 2:]
+        l_bracket.next_to(rows, LEFT, h_buff)
+        r_bracket.next_to(rows, RIGHT, h_buff)
+        return VGroup(l_bracket, r_bracket)
+        

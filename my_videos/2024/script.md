@@ -25,10 +25,59 @@
 
 矩阵的第三个身份是变换的魔术师。
 
-比如，旋转矩阵可以让一个物体在二维或三维空间中自由旋转。
+1.旋转：要进行旋转变换，我们需要一个可以进行旋转的矩阵。这样的矩阵需要满足两个条件：1.正交矩阵；2.矩阵的行列式为1
+$$
+A^\intercal A=I
+$$
+
+$$
+\det (A)=1
+$$
+
+same as
+$$
+\lvert A \rvert =1
+$$
+比如这样一个矩阵
+$$
+\left[\enspace\begin{matrix}
+\cos \theta&-\sin \theta &0\\
+\sin \theta&\cos \theta&0\\
+0&0&1
+\end{matrix}\enspace\right]
+$$
+我们可以check是否满足上述两个条件。满足！
+
+如果我取$\theta=$30 $^\circ$，并提取空间中任取一个点的坐标，左乘这个矩阵，将得到的结果，画在图上，会发现，这个点绕着z轴旋转了30$^\circ$，如果我们像之前一样，取很多很多的点，做相同的操作，最终的结果就是将空间中的三维物体绕着z轴旋转30度。
+$$
+\checkmark
+$$
+
+$$
+\left|\begin{matrix}
+\cos\theta&-\sin\theta\\
+\sin\theta&\cos\theta
+\end{matrix}\right|
+$$
 
 
-投影矩阵：可以将一个立体的世界投影到二维画布上！
+
+2.降维：我需要一个矩阵，能将三维物体的z轴分量去除，只保留x，y分量。
+
+这个矩阵可以满足这个要求：
+$$
+\left[\enspace\begin{matrix}
+1&0&0\\
+0&1&0\\
+\end{matrix}\enspace\right]
+\left[\enspace\begin{matrix}
+x\\y\\z
+\end{matrix}\enspace\right]=
+\left[\enspace\begin{matrix}
+x\\y
+\end{matrix}\enspace\right]
+$$
+如果我们观察矩阵的维度，2 $\times$3 ，3表示输入向量的维度，2表示输出向量的维度，这个矩阵的2 $\times$3就表示它会将三维的物体降维到二维。
 
 ## 结尾：
 

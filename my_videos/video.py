@@ -1,12 +1,12 @@
 from pyglet.libs.win32.constants import ENM_CHANGE
 from manim_imports_ext import *
-class data_warehouse(InteractiveScene):
+class data_repository(InteractiveScene):
     def construct(self):
         # init
         frame=self.frame
 
         # write title
-        title=TextCustom(en='Data Warehouse',ch='数据仓库')
+        title=TextCustom(en='Data Repository',ch='数据仓库')
         title.scale(1.5)
         self.play(FadeIn(title.en,shift=RIGHT),FadeIn(title.ch,shift=LEFT))
         self.wait()
@@ -96,7 +96,7 @@ class data_warehouse(InteractiveScene):
         ax.add_coordinate_labels()
         ax.remove(ax.z_axis)
         ax.set_opacity(0.7)
-        svg=SVGMobject('kun.svg',stroke_color=WHITE,stroke_opacity=1,stroke_width=1,)
+        svg=SVGMobject('kun.svg',stroke_color=WHITE,stroke_opacity=1,stroke_width=2,)
         svg.scale(2)
         points=svg.get_all_points()             # 1518
         clouds=get_cloud_grp(points,slices=66)  # 1518=23*66
@@ -190,8 +190,11 @@ class data_warehouse(InteractiveScene):
 
         # fadeout drawborder
         self.play(LaggedStartMap(FadeOut,grp,shift=UP),FadeOut(ax))
-        self.play(DrawBorderThenFill(svg,run_time=10,stroke_width=3),
-            LaggedStartMap(FadeOut,Group(clouds_shuffled,the_points_grp),run_time=10))
+        self.play(
+            LaggedStart(
+            AnimationGroup(*map(FadeOut,Group(the_points_grp,clouds_shuffled))), 
+            DrawBorderThenFill(svg),lag_ratio=0.02,run_time=10
+            ))
 
         # back rectangle
         rec=BackgroundRectangle(svg,color=WHITE,buff=0,fill_opacity=1)
@@ -967,13 +970,13 @@ class space_builder(InteractiveScene):
             LaggedStartMap(FadeOut,VGroup(mat4d,tex_3d),shift=LEFT) ,
             LaggedStartMap(FadeOut,VGroup(changeable_parts,mat4d.vector_matrices,*lines),shift=RIGHT),
             LaggedStartMap(FadeOut,Group(self.mobjects)))
-class magician_of_transforming(InteractiveScene):
+class magician_of_transformation(InteractiveScene):
     def construct(self):
         # init
         frame=self.frame
         # start
         # write title
-        title=TextCustom(en='Magician of Transformation',ch='掌管变换的魔术师')
+        title=TextCustom(en='Magician of Transformation',ch='古希腊掌管变化的神')
         title.scale(1.5)
         self.play(FadeIn(title.en,shift=RIGHT),FadeIn(title.ch,shift=LEFT))
         self.wait(2)
