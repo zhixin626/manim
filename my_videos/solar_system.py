@@ -1,4 +1,7 @@
-from manimlib import *
+from os import supports_dir_fd
+
+from numpy.core.arrayprint import set_string_function
+from manim_imports_ext import *
 import re
 import numpy as np
 from PIL import Image
@@ -126,7 +129,7 @@ class rotation(InteractiveScene):
         light.move_to(ORIGIN)
         self.add(light_dot)
 
-class solar_system(InteractiveScene):
+class video_solar_system(InteractiveScene):
     def construct(self):
         # start
         frame=self.frame
@@ -191,34 +194,108 @@ class solar_system(InteractiveScene):
 
         # self.add(t_universe,sun,mercury,venus,earth,mars,jupiter,saturn,uranus,neptune)
 
-        self.add(t_universe,t_sun,t_mercury,t_venus,t_earth,t_moon,
-            t_mars,t_jupiter,t_saturn,t_uranus,t_neptune)
-        frame.reorient(-4, 66, 0, sun.get_center(), 503.37)
-        frame.reorient(-4, 66, 0, mercury.get_center(), 3)
-        frame.reorient(-4, 66, 0, venus.get_center(), 3)
-        frame.reorient(-4, 66, 0, earth.get_center(), 3)
-        frame.reorient(83, 78, 0, moon.get_center()+np.array([0,moon.radius,0]), 0.1)  # moon
-        frame.reorient(-4, 66, 0, mars.get_center(), 3)
-        frame.reorient(-4, 66, 0, jupiter.get_center(), 33)
-        frame.reorient(-4, 66, 0, saturn.get_center(), 25)
-        frame.reorient(-4, 66, 0 ,uranus.get_center(), 10)
-        frame.reorient(-4, 66, 0, neptune.get_center(), 10)
+        # self.add(t_universe,t_sun,t_mercury,t_venus,t_earth,t_moon,
+        #     t_mars,t_jupiter,t_saturn,t_uranus,t_neptune)
+        # frame.reorient(-4, 66, 0, sun.get_center(), 503.37)
+        # frame.reorient(-4, 66, 0, mercury.get_center(), 3)
+        # frame.reorient(-4, 66, 0, venus.get_center(), 3)
+        # frame.reorient(-4, 66, 0, earth.get_center(), 3)
+        # frame.reorient(83, 78, 0, moon.get_center()+np.array([0,moon.radius,0]), 0.1)  # moon
+        # frame.reorient(-4, 66, 0, mars.get_center(), 3)
+        # frame.reorient(-4, 66, 0, jupiter.get_center(), 33)
+        # frame.reorient(-4, 66, 0, saturn.get_center(), 25)
+        # frame.reorient(-4, 66, 0 ,uranus.get_center(), 10)
+        # frame.reorient(-4, 66, 0, neptune.get_center(), 10)
 
         # from Earth back to Sun
-        frame.reorient(4, 73, 0, earth.get_center(),3.00)
-        self.play(frame.animate.reorient(68, 82, 0, earth.get_center(), 3))
-        self.play(frame.animate.reorient(68, 82, 0, (-0.59, -1.29, 0.47), 0.16),
-            run_time=3)
-        self.play(frame.animate.reorient(68, 82, 0, venus.get_center(), 3),
-            run_time=3,rate_func=smooth)
-        self.play(frame.animate.reorient(68, 82, 0, mercury.get_center(), 3),
-            run_time=5,rate_func=smooth)
-        self.play(frame.animate.reorient(68, 82, 0, sun.get_center(), 500),
-            run_time=5,rate_func=smooth)
+        # frame.reorient(4, 73, 0, earth.get_center(),3.00)
+        # self.play(frame.animate.reorient(68, 82, 0, (-0.59, -1.29, 0.47), 0.16),run_time=3)
+        # self.play(frame.animate.reorient(68, 82, 0, venus.get_center(), 3),run_time=3,rate_func=smooth)
+        # self.play(frame.animate.reorient(68, 82, 0, mercury.get_center(), 3), run_time=5,rate_func=smooth)
+        # self.play(frame.animate.reorient(68, 82, 0, sun.get_center(), 3),run_time=5,rate_func=smooth)
+        # self.play(frame.animate.reorient(68, 82, 0, saturn.get_center(), 30))
+        # self.play(frame.animate.reorient(68, 82, 0, jupiter.get_center(), 30))
+        # self.play(frame.animate.reorient(68, 82, 0, earth.get_center(), 3))
+        # self.play(frame.animate.reorient(68, 82, 0, moon.get_center(), 3))
+        
+        # init_init
+        mat1=Matrix([[1,0,0],[0,1,0],[0,0,0]])
+        mat1.to_corner(UL)
+        mat1.fix_in_frame()
+        self.add(t_universe)
+        self.add(mat1)
+
+        # init
+        t_moon.clear_updaters()
+        t_earth.clear_updaters()
+        text_moon=TextCustom(en="Moon",ch="月球")
+        text_moon.scale(0.5)
+        text_moon.rotate(PI/2,axis=RIGHT)
+        text_moon.always.next_to(t_moon,OUT)
+        text_moon.rotate(PI/2,axis=OUT)
+
+        # updater
+        T=30 # seconds
+        w_earth=TAU/T
+        w_moon=w_earth*1/27
+        t_earth.clear_updaters()
+        t_earth.add_updater(lambda m,dt:m.rotate(w_earth*dt,axis=OUT))
+        t_moon.add_updater(lambda m,dt:m.rotate(w_moon*dt,axis=OUT))
+        t_moon.add_updater(lambda m,dt:m.rotate(w_moon*dt,axis=OUT,about_point=ORIGIN))
+        self.play(frame.animate.reorient(68, 82, 0, (60.29, 0.1, 0.17), 3.74),
+            *map(FadeIn,Group(t_moon,t_earth,t_earth)))
+        # text_moon.suspend_updating()
+        self.play(Write(text_moon))
+        # text_moon.resume_updating()
+        self.wait(2)
+        # frame.reorient(68, 82, 0, moon.get_center(), 1)
+        # frame.move_to(t_moon.get_center())
 
         # orthogonal projection matrix
-        mat=np.array([[1,0,0],[0,1,0],[0,0,0.01]])
-        self.play(t_earth.animate.apply_matrix(mat))      
+        ax=ThreeDAxesCustom(x_range=(-3,3,1),y_range=(-2,2,1),z_range=(-2,2,1))
+        ax.move_to(t_earth)
+        ax.apply_depth_test()
+        ax.add_axis_labels()
+        ax.remove(ax.axis_labels[-1])
+        ax.set_opacity(0.7)
+        nbp=NumberPlaneCustom(x_range=(-3,3,1),y_range=(-2,2,1))
+        nbp.apply_depth_test()
+        text_earth=TextCustom(en="Earth",ch="地球")
+        text_earth.rotate(PI/2,axis=RIGHT)
+        text_earth.rotate(PI/2,axis=OUT)
+        text_earth.next_to(t_earth,OUT,buff=1)
+        self.play(frame.animate.reorient(60, 89, 0, (0.29, 0.49, 0.89), 5.34),run_time=2)
+        self.play(Write(text_earth))
+        self.play(Write(ax),Write(nbp))
+        
+        # proj
+        sf1=Surface(u_range=(0,mat1.get_width()),v_range=(0,mat1.get_height()))
+        sf1.set_opacity(0.5)
+        sf1.fix_in_frame()
+        sf1.to_corner(UL)
+        sf2=Surface(u_range=(-0.5,0.5),v_range=(-0.5,0.5))
+        sf2.set_opacity(0.5)
+        sf2.set_z(1)
+        proj_mat=np.array([[1,0,0],[0,1,0],[0,0,0.0001]])
+        mat2=mat1.copy()
+        mat2.unfix_from_frame()
+        mat2.set_width(1)
+        mat2.move_to(sf2)
+        self.play(ShowCreation(sf1))
+        self.play(TransformFromCopy(mat1,mat2),TransformFromCopy(sf1,sf2),
+            frame.animate.reorient(41, 73, 0, (0.05, 0.28, 0.39), 4.06),run_time=2)
+        self.play(t_earth.animate.apply_matrix(proj_mat),
+            sf2.animate.shift(IN*0.99),mat2.animate.shift(IN*0.99),run_time=2)
+        self.wait()
+        self.play(frame.animate.reorient(60, 89, 0, (0.29, 0.49, 0.89), 5.34),
+            ReplacementTransform(mat2,mat1),ReplacementTransform(sf2,sf1))
+        self.wait(2)
+        self.play(LaggedStartMap(FadeOut,Group(ax,nbp,t_earth,t_universe)),
+            LaggedStartMap(FadeOut,Group(sf1,mat1,text_earth),shift=LEFT))
+        
+        # t_earth.suspend_updating()
+        # self.wait(27)
+
 
 class Matrix_usefulness(InteractiveScene):
     def construct(self):

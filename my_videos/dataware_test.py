@@ -211,21 +211,34 @@ class data_warehouse_part(InteractiveScene):
 
 
 
-class video_rotation(InteractiveScene):
+class video_trans_rotation(InteractiveScene):
     def construct(self):
         # init
         frame=self.frame
+
+        # write title
+        title0=TextCustom(en='Magician of Transformation',ch='古希腊掌管变化的神')
+        title0.en["Transformation"].set_color(RED_A)
+        title0.ch["变化"].set_color(RED_A)
+        title0.scale(1.5)
+        self.play(FadeIn(title0.en,shift=RIGHT),FadeIn(title0.ch,shift=LEFT))
+        self.wait(2)
+        # self.play(FadeOut(title0.en,shift=RIGHT),FadeOut(title0.ch,shift=LEFT))
          
         # title--rotation
         title=TextCustom(en='Rotation Transformation',ch='旋转变换')
         title.scale(1.5)
         title.en["Rotation"].set_color(TEAL_A)
         title.ch["旋转"].set_color(TEAL_A)
-        self.play(FadeIn(title.en,shift=RIGHT),FadeIn(title.ch,shift=LEFT))
+        # self.play(FadeIn(title.en,shift=RIGHT),FadeIn(title.ch,shift=LEFT))
         title2=TextCustom(en='Rotation Marix',ch='旋转矩阵')
         title2.en["Rotation"].set_color(TEAL)
         title2.ch["旋转"].set_color(TEAL)
         title2.scale(1.5)
+        title2.add_updater(lambda m,dt:m.rotate(dt*PI/20,axis=UP))
+        self.play(ReplacementTransform(title0.en,title.en),
+            ReplacementTransform(title0.ch,title.ch),run_time=2)
+        self.wait()
         self.play(ReplacementTransform(title.en['Rotation'],title2.en["Rotation"]),
             ReplacementTransform(title.ch['旋转'],title2.ch["旋转"]),
             LaggedStartMap(FadeOut,VGroup(title.en["Transformation"],title.ch["变换"]),shift=DOWN*2),
@@ -250,12 +263,14 @@ class video_rotation(InteractiveScene):
         text_orthogonal.ch['正交'].set_color(TEAL)
         text_det.en['Determinant'].set_color(TEAL)
         text_det.ch['行列式'].set_color(TEAL)
-        self.play(Write(brace),run_time=0.5)
+        self.play(Write(brace),run_time=1)
         self.play(LaggedStartMap(Write,VGroup(text_orthogonal.en,text_orthogonal.ch)),run_time=1)
+        self.wait(2)
         self.play(LaggedStartMap(Write,VGroup(text_det.en,text_det.ch)),run_time=1)
+        self.wait(2)
         self.play(LaggedStartMap(FadeOut,text_grp,shift=RIGHT*2),
                 LaggedStartMap(FadeIn,tex_grp,shift=RIGHT*2),run_time=1)
-        self.wait()
+        self.wait(3)
         self.play(LaggedStartMap(FadeOut,VGroup(title2,brace),shift=LEFT,run_time=0.5),
                  tex_grp.animate.set_anim_args(run_time=1.5)
                  .scale(0.7).arrange(DOWN,aligned_edge=LEFT,buff=0.5).to_corner(UL))
@@ -646,9 +661,9 @@ class video_rotation(InteractiveScene):
         # elbow.set_points_as_corners(arrow.pfp(0.3),arrow_result_glow.pfp(0.3))
         self.wait()
         self.play(FadeTransform(glow.copy(),glow_mat))
+        self.wait()
         self.play(LaggedStartMap(Write,VGroup(equal_sign,result_mat),lag_ratio=0.3 ))
-
-        # fadeout
+        self.wait()
         self.play(FadeOutToPoint(result_mat.unfix_from_frame(),ax.c2p(*result_mat_arr.reshape(1,3)[0])),
                 FadeOut(glow_mat,shift=UP),FadeIn(result_glow),
                 FadeOut(equal_sign,shift=UP))
@@ -676,10 +691,12 @@ class video_rotation(InteractiveScene):
         # self.add(albow)
         self.play(GrowArrow(arrow_result_glow))
         self.play(Write(albow))
+        self.wait()
         self.play(Write(dashedline1),Write(dashedline2),
             frame.animate.reorient(-13, 28, 0),Write(tex90))
         self.play(LaggedStartMap(FadeOut,Group(dashedline1,dashedline2,albow,tex90,
             result_glow,arrow,arrow_result_glow)))
+        self.wait()
 
         # add cloud
         sp=Sphere(radius=2,resolution=(20,20))
@@ -763,12 +780,15 @@ class video_rotation(InteractiveScene):
             self.play(basketball.animate.set_anim_args(path_arc=PI/2)\
                 .apply_matrix(mat_arr),
                 mat_attached_grp.animate.set_anim_args(path_arc=PI/2)\
-                .apply_matrix(mat_arr))
+                .apply_matrix(mat_arr),)
+            self.play(mat_attached_grp[i].animate.set_opacity(0.5),run_time=0.5)
+            
+        
         # fadeout
         self.play(FadeOut(mat,shift=LEFT),
             LaggedStartMap(FadeOut,
             Group(hint_arrow,line1,line2,ax,elbow,mat_attached_grp,basketball),shift=RIGHT,
-            lag_ratio=0),)
+            lag_ratio=0.02),)
 
 
 
@@ -925,6 +945,307 @@ class video_rotation(InteractiveScene):
         # self.add(tex_theta)
         # self.add(basketball)
         # self.add(im)
+
+        pass
+class video_projection(InteractiveScene):
+    def construct(self):
+        # init
+        frame=self.frame
+        # start
+        mat=np.array([[1,0],[0,1],[0,0]])
+        proj_mat=mat@np.linalg.inv(mat.T@mat)@mat.T
+
+        # title--projection
+        frame.reorient(0, 55, 0, (-0.14, -0.2, 0.08), 8.00)
+        title=TextCustom(en='Projection',ch='投影')
+        nbp=NumberPlaneCustom(x_range=(-3,3,1),y_range=(-4,4,1))
+        nbp.axes.set_opacity(0.5)
+        title.scale(1.5)
+        title.set_color(TEAL_A)
+        title.set_z(3)
+        tt1_en=TracingTail(title.en[0],stroke_color=TEAL)
+        tt2_en=TracingTail(title.en[-1],stroke_color=TEAL)
+        tt1_ch=TracingTail(title.ch[0],stroke_color=TEAL)
+        tt2_ch=TracingTail(title.ch[-1],stroke_color=TEAL)
+        title.fix_in_frame()
+        self.play(FadeIn(title.en,shift=RIGHT),FadeIn(title.ch,shift=LEFT))
+        self.play(Write(nbp),title.animate.unfix_from_frame())
+        self.add(tt1_en,tt2_en,tt1_ch,tt2_ch)
+        self.play(title.animate.center())
+        self.wait()
+        self.remove(tt1_en,tt2_en,tt1_ch,tt2_ch)
+        self.play(FadeOut(nbp),frame.animate.to_default_state())
+
+        # projection matrix
+        title2=TextCustom(en="Projection Matrix",ch="投影矩阵")
+        title2.en["Projection"].set_color(TEAL_A)
+        title2.ch["投影"].set_color(TEAL_A)
+        title2.scale(1.5)
+        self.play(FadeTransform(title.en,title2.en["Projection"]),
+            FadeTransform(title.ch,title2.ch["投影"]),
+            Write(title2.en["Matrix"]),Write(title2.ch["矩阵"]))
+        self.wait()
+
+        # P^2=P
+        tex=Tex(R"P^2=P",t2c={"^2":TEAL_A})
+        tex.scale(3)
+        self.play(FadeOut(title2,shift=LEFT*2),FadeIn(tex,shift=LEFT*2))
+        self.wait()
+        self.play(tex.animate.scale(0.6).to_corner(UL))
+        self.wait()
+
+        # for example
+        title=TextCustom(en='For Example',ch='举个栗子')
+        title.scale(1.5)
+        self.play(FadeIn(title.en,shift=LEFT*2),FadeIn(title.ch,shift=LEFT*2))
+        self.wait()
+        self.play(FadeOut(title.en,shift=LEFT*2),FadeOut(title.ch,shift=LEFT*2))
+        self.wait()
+
+        # functions  
+        def get_steps(mat1:Matrix,mat2:Matrix):
+            mat1_arr=mat1.arr
+            mat2_arr=mat2.arr
+            result_arr=mat1_arr@mat2_arr
+            plus_sign=Tex(R"+")
+            equal_sign=Tex(R"=")
+            num_of_cols=mat1_arr.shape[1]
+            num_of_rows=mat1_arr.shape[0]
+            num_of_steps=mat2_arr.shape[1]
+            steps=VGroup()
+            for i in range(num_of_steps):
+                eqn_grp=VGroup()
+                for j in range(num_of_cols):
+                    eqn_grp.add(mat2.get_column(i)[j].deepcopy())
+                    m=Matrix( mat1_arr[:,j].reshape(num_of_rows,1) )
+                    eqn_grp.add(m)
+                    if j != num_of_cols-1: 
+                        eqn_grp.add(plus_sign.deepcopy())
+                    else:
+                        eqn_grp.add(equal_sign.deepcopy())
+                        m=Matrix(result_arr[:,i].reshape(num_of_cols,1))
+                        eqn_grp.add(m)
+                eqn_grp.arrange(RIGHT)
+                eqn_grp.scale(0.5)
+                eqn_grp.next_to(VGroup(mat1,mat2),UP)
+                steps.add(eqn_grp)
+            return steps
+
+        def set_steps_color(steps,colors,opacity=0.5):
+            for step in steps:
+                step[0].set_color(colors[0])
+                rec=Rectangle(width=step[1].get_width(),height=step[1].get_height(),
+                    fill_color=colors[0],fill_opacity=opacity,stroke_width=0)
+                rec.move_to(step[1])
+                step[1].add_to_back(rec)
+                step[3].set_color(colors[1])
+                rec=Rectangle(width=step[4].get_width(),height=step[4].get_height(),
+                    fill_color=colors[1],fill_opacity=opacity,stroke_width=0)
+                rec.move_to(step[4])
+                step[4].add_to_back(rec)
+                step[6].set_color(colors[2])
+                rec=Rectangle(width=step[7].get_width(),height=step[7].get_height(),
+                    fill_color=colors[2],fill_opacity=opacity,stroke_width=0)
+                rec.move_to(step[7])
+                step[7].add_to_back(rec)
+
+
+        # matrix col multiply
+        colors=[YELLOW_B,PURPLE_B,BLUE_B]
+        mat1=Matrix(np.array([[1,0,0],[0,1,0],[0,0,0]]))
+        mat1.arr=np.array([[1,0,0],[0,1,0],[0,0,0]])
+        mat2=mat1.deepcopy()
+        mat_result=mat1.deepcopy()
+        equal_sign=Tex(R"=")
+        mat_grp=VGroup(mat1,mat2,equal_sign,mat_result)
+        mat_grp.arrange(RIGHT)
+        opacity=0.5
+        rec1=Rectangle(width=mat1.get_width()/3,
+                       height=mat1.get_height(),fill_color=colors[0],fill_opacity=opacity,
+                       stroke_width=0)
+        rec2=Rectangle(width=mat1.get_width()/3,
+                       height=mat1.get_height(),fill_color=colors[1],fill_opacity=opacity,
+                       stroke_width=0)
+        rec3=Rectangle(width=mat1.get_width()/3,
+                       height=mat1.get_height(),fill_color=colors[2],fill_opacity=opacity,
+                       stroke_width=0)
+        mat1_recs=VGroup(rec1,rec2,rec3).arrange(RIGHT,buff=0)
+
+        mat1_recs.move_to(mat1)
+        tex_p1=Tex(R'P')
+        tex_p2=Tex(R'P')
+        tex_p1.scale(1.5)
+        tex_p2.scale(1.5)
+        tex_p1.next_to(mat1,UP)
+        tex_p2.next_to(mat2,UP)
+        mat1.save_state()
+        tex_p1.save_state()
+        mat1.center()
+        self.play(Write(mat1))
+        tex_p1.next_to(mat1,UP)
+        self.play(Write(tex_p1),run_time=0.5)
+        self.play(mat1.animate.restore(),tex_p1.animate.restore())
+        self.play(TransformFromCopy(VGroup(tex_p1,mat1),VGroup(tex_p2,mat2)))
+        self.play(Write(equal_sign),run_time=0.5)
+        tex_pd=Tex(R"P^2",t2c={"^2":TEAL_A})
+        tex_pd.scale(1.5)
+        tex_pd.next_to(VGroup(mat1,mat2),DOWN,buff=0.5)
+        self.play( LaggedStart(ReplacementTransform(tex_p1,tex_pd[0]),
+                   ReplacementTransform(tex_p2,tex_pd[1]),lag_ratio=0.2 ) )
+        self.play( LaggedStartMap(FadeIn,mat1_recs,shift=DOWN,lag_ratio=0.2),run_time=1)
+
+        # anims
+        steps=get_steps(mat1,mat2)
+        set_steps_color(steps,colors,opacity=opacity)
+        step=0
+        self.play(LaggedStart(
+            TransformMatchingParts(
+                VGroup(mat1.get_column(0),mat1.brackets).copy(),steps[step][1]),
+            TransformMatchingParts(
+                VGroup(mat1.get_column(1),mat1.brackets).copy(),steps[step][4]),
+            TransformMatchingParts(
+                VGroup(mat1.get_column(2),mat1.brackets).copy(),steps[step][7]),
+            lag_ratio=0.5),
+            VGroup(mat1,mat1_recs).animate.fade(0.2), run_time=1.5)
+        self.play( LaggedStart(
+            TransformFromCopy(mat2.get_column(step)[0],steps[step][0]),
+            TransformFromCopy(mat2.get_column(step)[1],steps[step][3]),
+            TransformFromCopy(mat2.get_column(step)[2],steps[step][6]),
+            lag_ratio=0.2),
+            mat2.get_column(step)[0].animate.fade(0.5),
+            mat2.get_column(step)[1].animate.fade(0.5),
+            mat2.get_column(step)[2].animate.fade(0.5),
+            run_time=1.5 )
+        self.play(LaggedStart(
+            AnimationGroup(*map(Write,VGroup(steps[step][2],steps[step][5],steps[step][8]))),
+            Write(steps[step][9])),run_time=1)
+        self.play(ReplacementTransform(steps[step][9].get_column(0),mat_result.get_column(step)),
+            Write(mat_result.brackets[0]),FadeOut(steps[step][-1].brackets),
+            LaggedStartMap(FadeOut,steps[step][:-1],shift=RIGHT),run_time=1.5)
+        step=1
+        self.play(LaggedStart(
+            TransformMatchingParts(
+                VGroup(mat1.get_column(0),mat1.brackets).copy(),steps[step][1]),
+            TransformMatchingParts(
+                VGroup(mat1.get_column(1),mat1.brackets).copy(),steps[step][4]),
+            TransformMatchingParts(
+                VGroup(mat1.get_column(2),mat1.brackets).copy(),steps[step][7]),
+            lag_ratio=0.5),
+            VGroup(mat1,mat1_recs).animate.fade(0.2), run_time=1.5)
+        self.play( LaggedStart(
+            TransformFromCopy(mat2.get_column(step)[0],steps[step][0]),
+            TransformFromCopy(mat2.get_column(step)[1],steps[step][3]),
+            TransformFromCopy(mat2.get_column(step)[2],steps[step][6]),
+            lag_ratio=0.2),
+            mat2.get_column(step)[0].animate.fade(0.5),
+            mat2.get_column(step)[1].animate.fade(0.5),
+            mat2.get_column(step)[2].animate.fade(0.5),
+            run_time=1.5 )
+        self.play(LaggedStart(
+            AnimationGroup(*map(Write,VGroup(steps[step][2],steps[step][5],steps[step][8]))),
+            Write(steps[step][9])),run_time=1)
+        self.play(ReplacementTransform(steps[step][9].get_column(0),mat_result.get_column(step)),
+            FadeOut(steps[step][-1].brackets),
+            LaggedStartMap(FadeOut,steps[step][:-1],shift=RIGHT),run_time=1.5)
+        step=2
+        self.play(LaggedStart(
+            TransformMatchingParts(
+                VGroup(mat1.get_column(0),mat1.brackets).copy(),steps[step][1]),
+            TransformMatchingParts(
+                VGroup(mat1.get_column(1),mat1.brackets).copy(),steps[step][4]),
+            TransformMatchingParts(
+                VGroup(mat1.get_column(2),mat1.brackets).copy(),steps[step][7]),
+            lag_ratio=0.5),
+            VGroup(mat1,mat1_recs).animate.fade(0.2), run_time=1.5)
+        self.play( LaggedStart(
+            TransformFromCopy(mat2.get_column(step)[0],steps[step][0]),
+            TransformFromCopy(mat2.get_column(step)[1],steps[step][3]),
+            TransformFromCopy(mat2.get_column(step)[2],steps[step][6]),
+            lag_ratio=0.2),
+            mat2.get_column(step)[0].animate.fade(0.5),
+            mat2.get_column(step)[1].animate.fade(0.5),
+            mat2.get_column(step)[2].animate.fade(0.5),
+            run_time=1.5 )
+        self.play(LaggedStart(
+            AnimationGroup(*map(Write,VGroup(steps[step][2],steps[step][5],steps[step][8]))),
+            Write(steps[step][9])),run_time=1)
+        self.play(ReplacementTransform(steps[step][9].get_column(0),mat_result.get_column(step)),
+            Write(mat_result.brackets[1]),FadeOut(steps[step][-1].brackets),
+            LaggedStartMap(FadeOut,steps[step][:-1],shift=RIGHT),run_time=1.5)
+
+        # fadeout matrix
+        tex_p3=Tex(R"P")
+        tex_p3.scale(1.5)
+        tex_p3.next_to(mat_result,DOWN,buff=0.5)
+        tex_p3.align_to(tex_pd,DOWN)
+        equal_check=Tex(R"=")
+        equal_check.next_to(tex_pd,RIGHT)
+        check_mark=Tex(R"\checkmark").set_color(RED)
+        check_mark.scale(1.5)
+        check_mark.next_to(tex,RIGHT)
+        self.play(Write(tex_p3),run_time=0.5)
+        self.play(LaggedStartMap(FadeOut,VGroup(mat1_recs,mat2,mat_result,equal_sign),shift=RIGHT),
+                mat1.animate.set_opacity(1),
+                Write(equal_check),tex_p3.animate.next_to(equal_check,RIGHT).align_to(tex_pd,DOWN))
+        self.play(ReplacementTransform(VGroup(tex_pd,equal_check,tex_p3),check_mark))
+        self.play(LaggedStartMap(FadeOut,VGroup(tex,check_mark),shift=UP),
+                mat1.animate.center())
+
+        # muti [x,y,z]
+        mat_xyz=Matrix([[Tex(R"x")],[Tex(R"y")],[Tex(R"z")]])
+        mat_xyz.next_to(mat1,RIGHT)
+        mat_result=Matrix([[Tex(R"x")],[Tex(R"y")],[Tex(R"0")]])
+        equal=Tex(R"=")
+        equal.next_to(mat_xyz,RIGHT)
+        mat_result.next_to(equal,RIGHT)
+        self.play(LaggedStartMap(Write,VGroup(mat_xyz,equal),lag_ratio=0.2),run_time=1)
+        self.play(VGroup(mat1,mat_xyz,equal).animate.arrange(RIGHT).center(),run_time=1)
+        mat_result.next_to(equal,RIGHT)
+        steps=VGroup(Tex(R"x"),Matrix([[1],[0],[0]]),Tex(R"+"),Tex(R"y"),
+            Matrix([[0],[1],[0]]),Tex(R"+"),Tex(R"z"),Matrix([[0],[0],[0]]),Tex(R"="),
+            Matrix([[Tex(R"x")],[Tex(R"y")],[Tex(R"0")]]) )
+        steps.arrange(RIGHT)
+        steps.scale(0.5)
+        steps.next_to(VGroup(mat1,mat_xyz),UP)
+        steps=VGroup(steps)
+
+        step=0
+        self.play(LaggedStart(
+            TransformMatchingParts(
+                VGroup(mat1.get_column(0),mat1.brackets).copy(),steps[step][1]),
+            TransformMatchingParts(
+                VGroup(mat1.get_column(1),mat1.brackets).copy(),steps[step][4]),
+            TransformMatchingParts(
+                VGroup(mat1.get_column(2),mat1.brackets).copy(),steps[step][7]),
+            lag_ratio=0.5),run_time=1)
+        self.play( LaggedStart(
+            TransformFromCopy(mat_xyz.get_column(step)[0],steps[step][0]),
+            TransformFromCopy(mat_xyz.get_column(step)[1],steps[step][3]),
+            TransformFromCopy(mat_xyz.get_column(step)[2],steps[step][6]),
+            lag_ratio=0.2), run_time=1 )
+        self.play(LaggedStart(
+            AnimationGroup(*map(Write,VGroup(steps[step][2],steps[step][5],steps[step][8]))),
+            Write(steps[step][9])),run_time=1)
+        self.play(ReplacementTransform(steps[step][9].get_column(0),mat_result.get_column(step)),
+            Write(mat_result.brackets),FadeOut(steps[step][-1].brackets),
+            LaggedStartMap(FadeOut,steps[step][:-1],shift=RIGHT),run_time=1)
+        self.play(VGroup(mat1,mat_xyz,equal,mat_result).animate.center(),run_time=0.5)
+
+        # indicate x,y
+        self.play(TransformFromCopy2(VGroup(mat_xyz.elements[:2]),VGroup(mat_result.elements[:2])))
+        self.play(TransformFromCopy2(VGroup(mat_result.elements[:2]),VGroup(mat_xyz.elements[:2])))
+        self.play(LaggedStartMap(FlashAround,VGroup(mat_xyz.elements[2],mat_result.elements[2])))
+        self.play(LaggedStartMap(FadeOut,VGroup(mat_xyz,equal,mat_result),shift=RIGHT),
+                mat1.animate.to_corner(UL))
+
+
+    
+
+
+
+
+
+
 
         pass
 class MatrixDet(Matrix):

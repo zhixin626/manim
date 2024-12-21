@@ -16,6 +16,12 @@ def get_current_frame_surface(frame,**kwargs):
     sf.move_to(frame.get_center())
     return sf
 # custom class
+class TransformFromCopy2(Transform):
+    def __init__(self, mobject, target_mobject, **kwargs):
+        super().__init__(mobject.copy(), target_mobject.copy(), **kwargs)
+    def clean_up_from_scene(self, scene: Scene) -> None:
+        scene.remove(self.mobject)
+        scene.remove(self.target_mobject)
 class TextCustom(VGroup):
     def __init__(self, 
         en=None                   ,ch=None,
