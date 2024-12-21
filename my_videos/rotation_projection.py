@@ -1,6 +1,6 @@
 from manim_imports_ext import *
 import time
-class data_warehouse_part(InteractiveScene):
+class data_repo_part(InteractiveScene):
     def construct(self):
         # init
         frame=self.frame
@@ -202,14 +202,6 @@ class data_warehouse_part(InteractiveScene):
         # self.play(FadeOutToPoint(arrow,the_coord),FadeIn(the_point))
         # shuffle animations
         # self.play(LaggedStartMap(ShowCreation,clouds[1:].shuffle()),run_time=10)
-        
-
-
-
-
-
-
-
 
 class video_trans_rotation(InteractiveScene):
     def construct(self):

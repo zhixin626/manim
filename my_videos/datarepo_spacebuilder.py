@@ -1,4 +1,3 @@
-from pyglet.libs.win32.constants import ENM_CHANGE
 from manim_imports_ext import *
 class data_repository(InteractiveScene):
     def construct(self):

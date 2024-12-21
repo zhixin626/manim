@@ -1,6 +1,3 @@
-from os import supports_dir_fd
-
-from numpy.core.arrayprint import set_string_function
 from manim_imports_ext import *
 import re
 import numpy as np
@@ -83,10 +80,6 @@ class image(InteractiveScene):
         mat_r.get_corner(UL)
 
 
-
-
-
-
 class rotation(InteractiveScene):
     def construct(self):
         # start
@@ -131,7 +124,7 @@ class rotation(InteractiveScene):
 
 class video_solar_system(InteractiveScene):
     def construct(self):
-        # start
+        # setup
         frame=self.frame
         ax=ThreeDAxes((-200,200),(-200,200),(-200,200))
         sun=Sphere(radius=109)
@@ -218,7 +211,7 @@ class video_solar_system(InteractiveScene):
         # self.play(frame.animate.reorient(68, 82, 0, earth.get_center(), 3))
         # self.play(frame.animate.reorient(68, 82, 0, moon.get_center(), 3))
         
-        # init_init
+        # init_for_last_video
         mat1=Matrix([[1,0,0],[0,1,0],[0,0,0]])
         mat1.to_corner(UL)
         mat1.fix_in_frame()
