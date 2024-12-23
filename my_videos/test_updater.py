@@ -1,5 +1,4 @@
 from manimlib import *
-from manimlib.mobject import mobject
 class testupdater(InteractiveScene):
     def construct(self):
         # start
