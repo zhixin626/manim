@@ -77,7 +77,7 @@ class video1(InteractiveScene):
         # svgs
         text1=TextCustom(en='Data Repository',ch='数据仓库',aligned_edge=LEFT)
         text2=TextCustom(en='Architect of Spaces',ch='空间建筑师',aligned_edge=LEFT)
-        text3=TextCustom(en='Linear Transformation Magician',ch='线性变换魔术师',aligned_edge=LEFT)
+        text3=TextCustom(en='Linear Transformation Wizard',ch='线性变换魔法师',aligned_edge=LEFT)
         text1.scale(0.6)
         text2.scale(0.6)
         text3.scale(0.6)
@@ -85,39 +85,155 @@ class video1(InteractiveScene):
         grp_texts.arrange(DOWN)
 
         svg1=SVGMobject('warehouse.svg',stroke_color=WHITE,stroke_opacity=1,stroke_width=3,
-            fill_color=YELLOW,fill_opacity=0.3)
+            fill_color=PURPLE_B,fill_opacity=0.3)
         svg2=SVGMobject('hypercube.svg',stroke_color=WHITE,stroke_opacity=1,stroke_width=3,
             fill_color=WHITE,fill_opacity=0.1)
         svg3=SVGMobject('magician.svg',stroke_color=WHITE,stroke_opacity=1,stroke_width=3,
-            fill_color=PURPLE,fill_opacity=0.2)
+            fill_color=PURPLE_B,fill_opacity=0.3)
 
         grp_svgs=VGroup(svg1,svg2,svg3)
         grp_svgs.arrange(DOWN)
         grp_svgs.center().shift(LEFT)
-        svg1.scale(0.8)
+        svg1.scale(0.7)
         svg2.scale(0.8)
-        svg3.scale(0.8)
+        svg3.scale(0.9)
         grp_texts.to_edge(RIGHT)
         text1.next_to(svg1,RIGHT,buff=0.8)
         text2.next_to(svg2,RIGHT,buff=0.8).align_to(text1,LEFT)
         text3.next_to(svg3,RIGHT,buff=0.8).align_to(text1,LEFT)
-        # self.add(grp_svgs)
-        # self.add(grp_texts)
-        self.play( LaggedStart(DrawBorderThenFill(svg1),Write(text1),lag_ratio=0.5) )
+        ax=ThreeDAxesCustom()
+        floor=VMobject().set_points_as_corners([ax.c2p(-3,2,0),ax.c2p(0,4,0),ax.c2p(3,2,0)])
+        floor.add_arc_to(ax.c2p(3.25,2.25,0),angle=PI)
+        floor.add_line_to(ax.c2p(0,4.5,0))
+        floor.add_line_to(ax.c2p(-3.25,2.25,0))
+        floor.add_arc_to(ax.c2p(-3,2,0),angle=PI)
+        sq1=Square(1)
+        sq1.move_to(np.array([0,0.5,0]))
+        sq2=sq1.copy()
+        sq2.shift(RIGHT*1.5)
+        sq3=sq1.copy()
+        sq3.shift(LEFT*1.5)
+        sq4=sq1.copy()
+        sq4.move_to(np.array([-0.75,2,0]))
+        sq5=sq1.copy()
+        sq5.move_to(np.array([0.75,2,0]))
+        goods=VGroup(sq1,sq2,sq3,sq4,sq5)
+        repo=VGroup(floor,goods)
+        repo.scale(0.3)
+        repo.move_to(svg1)
+
+        self.play( LaggedStart(DrawBorderThenFill(repo),Write(text1),lag_ratio=0.3) )
+        self.play(sq1.animate.move_to(sq3),sq3.animate.move_to(sq4),
+            sq4.animate.move_to(sq5),sq5.animate.move_to(sq2),sq2.animate.move_to(sq1))
+        self.play(sq1.animate.move_to(sq3),sq3.animate.move_to(sq4),
+            sq4.animate.move_to(sq5),sq5.animate.move_to(sq2),sq2.animate.move_to(sq1))
+
+
+        # hyper_cube
+        def get_cube(length):
+            ax=ThreeDAxesCustom()
+            point1=ax.c2p(-length/2,-length/2,length/2)
+            point2=ax.c2p(-length/2,length/2,length/2)
+            point3=ax.c2p(length/2,length/2,length/2)
+            point4=ax.c2p(length/2,-length/2,length/2)
+            point5=ax.c2p(-length/2,-length/2,-length/2)
+            point6=ax.c2p(-length/2,length/2,-length/2)
+            point7=ax.c2p(length/2,length/2,-length/2)
+            point8=ax.c2p(length/2,-length/2,-length/2)
+            line1=Line(point1,point2)
+            line2=Line(point2,point3)
+            line3=Line(point3,point4)
+            line4=Line(point4,point1)
+            line5=Line(point5,point6)
+            line6=Line(point6,point7)
+            line7=Line(point7,point8)
+            line8=Line(point8,point5)
+            line9=Line(point1,point5)
+            line10=Line(point2,point6)
+            line11=Line(point3,point7)
+            line12=Line(point4,point8)
+            points=[point1,point2,point3,point4,point5,point6,point7,point8]
+            cube=VGroup(line1,line2,line3,line4,line5,line6,line7,line8,line9,line10,line11,line12)
+            return cube,points
+        cube1,points1=get_cube(1)     
+        cube2,points2=get_cube(2)
+        hyberlines=VGroup()
+        hyber_lines=VGroup(*[ Line(points1[i],points2[i])for i in range(len(points1))])
+        for i,line in enumerate(hyber_lines):
+            line.add_updater(lambda m,i=i:m.put_start_and_end_on(cube1[i].get_start(),cube2[i].get_start()))
+        hybercube=VGroup(cube1,cube2,hyber_lines)
+        hybercube.move_to(svg2)
+        hybercube.scale(0.5)
+        hybercube2=hybercube.deepcopy()
+        hybercube.add_updater(lambda m,dt:m.rotate(dt*PI/10,axis=DOWN))
+        hybercube.add_updater(lambda m,dt:m.rotate(dt*PI/10,axis=LEFT))
         self.wait()
-        self.play( LaggedStart(DrawBorderThenFill(svg2),Write(text2),lag_ratio=0.5) )
+        hybercube.suspend_updating()
+        self.play(ShowCreation(hybercube),run_time=0.5)
+        hybercube.resume_updating()
+        self.play(Write(text2))
         self.wait()
+        self.play(cube2.animate.scale(0.5),cube1.animate.scale(2),run_time=2,rate_func=there_and_back)
         self.play( LaggedStart(DrawBorderThenFill(svg3),Write(text3),lag_ratio=0.5) )
         self.wait()
 
         # fadeout
-        self.play(LaggedStartMap(FadeOut,VGroup(text,svg1),shift=LEFT),
+        self.play(LaggedStartMap(FadeOut,VGroup(text,repo),shift=LEFT),
                   AnimationGroup(
-                 LaggedStartMap(FadeOut,VGroup(svg2,text2,svg3,text3),shift=RIGHT),
+                 LaggedStartMap(FadeOut,VGroup(hybercube,text2,svg3,text3),shift=RIGHT),
                  text1.animate.scale(2/0.8).center().arrange(DOWN),lag_ratio=0.5))
+        hybercube.clear_updaters()
         self.wait()
         self.play(FadeOut(text1.en,shift=RIGHT),FadeOut(text1.ch,shift=LEFT))
         self.wait()
+
+        # picture
+        rec=Rectangle(width=FRAME_HEIGHT*4/3,height=FRAME_HEIGHT)
+        # self.add(rec)
+        cube1,points1=get_cube(1)     
+        cube2,points2=get_cube(2)
+        hyberlines=VGroup()
+        hyber_lines=VGroup(*[ Line(points1[i],points2[i])for i in range(len(points1))])
+        for i,line in enumerate(hyber_lines):
+            line.add_updater(lambda m,i=i:m.put_start_and_end_on(cube1[i].get_start(),cube2[i].get_start()))
+        hybercube=VGroup(cube1,cube2,hyber_lines)
+        mat=np.array([[ 9.58561009e-01, -2.84887333e-01, -1.94289029e-16],                                        
+                       [ 3.79927988e-02,  1.27834450e-01,  9.91067556e-01],                                        
+                       [-2.82342593e-01, -9.49998716e-01,  1.33360786e-01]])
+        hybercube.apply_matrix(mat) 
+        hybercube.rotate(-PI/10,axis=LEFT)
+        svg=SVGMobject('kun.svg',stroke_width=3,stroke_color=YELLOW,stroke_opacity=1,fill_opacity=0)
+        sf=Sphere(radius=1.5)
+        mesh=SurfaceMesh(sf,resolution=(10,10))
+        mesh.rotate(PI/4,axis=LEFT)
+        mesh[:10].set_color(YELLOW)
+        cube1.set_color(YELLOW)
+        cube2.set_color(WHITE)
+        svg.scale(1.3)
+        text=TextCustom(en='Matrix',ch='矩阵的三重身份')
+        # ,font='Mongolian Baiti'
+        text=Text('The triple identity \nof the matrix',alignment='center')
+        text2=Text('矩阵的三重身份',font='WenCang')
+        text.scale(2)
+        text2.scale(2)
+        text2.next_to(text,DOWN,buff=0.8)
+        rec1=Rectangle(width=FRAME_WIDTH/3,height=FRAME_HEIGHT,stroke_opacity=0,fill_opacity=0.5,fill_color=WHITE)
+        rec2=Rectangle(width=FRAME_WIDTH/3,height=FRAME_HEIGHT,stroke_opacity=0,fill_opacity=0.5,fill_color=BLUE)
+        rec3=Rectangle(width=FRAME_WIDTH/3,height=FRAME_HEIGHT,stroke_opacity=0,fill_opacity=0.5,fill_color=GREEN)
+        grp_rec=VGroup(rec1,rec2,rec3).arrange(RIGHT,buff=0)
+        hybercube.scale(0.7)
+        svg.scale(0.7)
+        mesh.scale(0.6)
+        rec_back=Rectangle(FRAME_WIDTH,FRAME_HEIGHT,fill_color=WHITE,fill_opacity=0.5)
+        grp=Group(svg,hybercube,mesh).arrange(RIGHT,buff=2).to_edge(UP,buff=0.1)
+        self.add(grp_rec)
+        self.add(grp)
+        self.add(text)
+        self.add(text2)
+        # self.bring_to_back(rec_back)
+
+        
+
 
 class video2(InteractiveScene):
     def construct(self):
@@ -429,6 +545,11 @@ class video3(InteractiveScene):
         mat2d.save_state()
         mat2d.center().scale(2)
         self.play(Write(mat2d))
+        self.play(LaggedStartMap(FlashAround,VGroup(mat2d.get_column(0),mat2d.get_column(1)),
+            lag_ratio=0.5),run_time=2)
+        self.wait()
+
+        # write rank
         text=TextCustom(en="Rank",ch="秩")
         tex=Tex(R"=")
         number=DecimalNumber(1,num_decimal_places=0)
@@ -476,14 +597,18 @@ class video3(InteractiveScene):
          ,lag_ratio=0.5))
         self.play(GrowArrow(arrow2))
 
-        # span 2d plane
+        # add two arrows
         nbp=NumberPlaneCustom()
         arrow3=get_added_arrow(arrow1,arrow2,axis=ax)
         changeable_parts=mat2d.get_changeable_parts()
+        arrow2copy=arrow2.copy().set_opacity(0.5)
+        self.play(arrow2copy.animate.shift(arrow1.get_vector()),arrow2.animate.set_opacity(0.5))
+        self.play(GrowArrow(arrow3))
+        self.play(FadeOut(arrow2copy),arrow1.animate.set_opacity(0.5))
         self.play(*map(FlashAround,mat2d.parts))
         self.play(ReplacementTransform(mat2d.parts,changeable_parts))
-        self.play(TransformFromCopy(arrow1,arrow3),TransformFromCopy(arrow2,arrow3),
-            arrow1.animate.set_opacity(0.5),arrow2.animate.set_opacity(0.5))
+
+        # span 2d plane
         vt1=ValueTracker(1)
         vt2=ValueTracker(1)
         changeable_parts[0].always.set_color(mat2d.color_palette[0])
@@ -509,14 +634,12 @@ class video3(InteractiveScene):
         self.play(LaggedStart(get_span2d_animation(-6,2,nbp)),run_time=0.9)
         self.play(LaggedStart(get_span2d_animation(2,-1,nbp)),run_time=0.8)
         self.play(LaggedStart(get_span2d_animation(-4,0,nbp)),run_time=0.8)
-
         self.play(LaggedStart(get_span2d_animation2(3,3,nbp)),run_time=0.7)
         self.play(LaggedStart(get_span2d_animation2(-3,2,nbp)),run_time=0.7)
         self.play(LaggedStart(get_span2d_animation2(5,1,nbp)),run_time=0.6)
         self.play(LaggedStart(get_span2d_animation2(-1,-1,nbp)),run_time=0.6)
         self.play(LaggedStart(get_span2d_animation2(6,-2,nbp)),run_time=0.6)
         self.play(LaggedStart(get_span2d_animation2(0,0,nbp)),run_time=0.6)
-
         self.play(Write(nbp.faded_lines.set_opacity(0.4)),
             nbp.background_lines.animate.set_opacity(0.5))
         self.play(ax.x_axis.animate.set_opacity(1),ax.y_axis.animate.set_opacity(1),)
@@ -617,10 +740,6 @@ class video3(InteractiveScene):
             TransformFromCopy2(mat3d.vector_matrices[2].elements[2],ax.z_axis.numbers[4]))
         self.play(GrowArrow(arrow3))
 
-        # indicate;get added arrow
-        mat3d.parts.fix_in_frame()
-        self.play(*map(FlashAround,mat3d.parts))
-        self.play(ReplacementTransform(mat3d.parts,changeable_parts))
         # added_arrow
         frame.save_state()
         arrow4=get_added_arrow(arrow1,arrow2,arrow3,axis=ax)
@@ -632,6 +751,11 @@ class video3(InteractiveScene):
         self.play(arrow3copy.animate.shift(arrow2.get_vector()),run_time=0.5,rate_func=linear)
         self.play(GrowArrow(arrow4))    
         self.play(LaggedStartMap(FadeOut,VGroup(arrow2copy,arrow3copy)),frame.animate.restore())
+
+        # indicate;get added arrow
+        mat3d.parts.fix_in_frame()
+        self.play(*map(FlashAround,mat3d.parts))
+        self.play(ReplacementTransform(mat3d.parts,changeable_parts))
         
         # span 3d space
         self.play(frame.animate.reorient(15, 29, 0, (0.78, 0.34, 0.02), 7.86))
@@ -867,11 +991,12 @@ class video3(InteractiveScene):
         tex_3d.to_corner(DL)
         tex_3d_number=tex_3d.make_number_changeable('3')
         tex_3d.fix_in_frame()
-        tex_3d_number.fix_in_frame()   
-        self.play(LaggedStart(Write(tex),
-            FlashAround(VGroup(mat4d.vector_matrices[3],mat4d.parts[3]),run_time=2),
-            lag_ratio=0.02))
+        tex_3d_number.fix_in_frame()
+        self.play(FlashAround(VGroup(mat4d.vector_matrices[3],mat4d.parts[3])),run_time=3)
+        self.play(Write(tex),run_time=2)
+        self.wait(2)
         self.play(FadeOut(tex,shift=RIGHT))
+        self.wait(2)
         frame.clear_updaters()
         self.play(frame.animate.set_orientation(ax.frame.get_orientation()))
         sf=get_current_frame_surface(frame)
@@ -894,8 +1019,13 @@ class video3(InteractiveScene):
             tex_3d_number.animate.set_value(4),
             run_time=3)
         self.wait()
+        self.play(ax.w_axis.animate.set_opacity(1),rate_func=there_and_back,run_time=2)
+        self.wait()
         self.play(frame.animate.rotate(30*DEGREES,axis=ax.z_axis.get_vector()),)
+        self.wait()
         self.play(frame.animate.scale(0.6))
+        self.wait()
+
         # grow 4th arrow
         self.play(TransformFromCopy2(
                 mat4d.vector_matrices[3].elements[0],zero),
@@ -905,6 +1035,8 @@ class video3(InteractiveScene):
             mat4d.parts[3].animate.set_opacity(0.3),
             mat4d.vector_matrices[3].animate.set_opacity(0.3),)
         self.play(GrowArrow(arrow4))
+        self.play(frame.animate.scale(1/0.6))
+        self.wait()
 
         # go back to 3d
         self.play(LaggedStart(
@@ -912,8 +1044,6 @@ class video3(InteractiveScene):
             AnimationGroup(*map(FadeOut,Group(ax.w_axis,arrow4)),
             AnimationGroup(FadeOut(sf),tex_3d_number.animate.set_value(3))
             ),lag_ratio=0.8 ) ,run_time=3)
-        # self.play(FadeOut(sf),tex_3d_number.animate.set_value(3))
-        
         restore_grp=VGroup(ax.x_axis,ax.y_axis,ax.z_axis,arrow1,arrow2,arrow3)
         for sth in restore_grp:
             sth.restore()
@@ -921,13 +1051,11 @@ class video3(InteractiveScene):
         self.play(frame.animate.reorient(19, 28, 0, (0,0,0), 3.93),)
         self.wait(4)
         
-        # flash around
+        # comb opacity 1
         fadeout_grp=Group(sf,ax.w_axis,arrow4)
         apply_grp=VGroup(arrow1,arrow2,arrow3,ax.x_axis,ax.y_axis,ax.z_axis)
         self.play(comb4d.animate.set_opacity(1))
         mat4d.parts.fix_in_frame()
-        self.play(LaggedStartMap(FlashAround,VGroup(*mat4d.parts)))
-        self.play(ReplacementTransform(mat4d.parts,changeable_parts))
         frame.clear_updaters()
 
         # add the first three arrows
@@ -941,7 +1069,7 @@ class video3(InteractiveScene):
         self.play(GrowArrow(added_arrow),run_time=0.5)    
         self.play(LaggedStartMap(FadeOut,VGroup(arrow2copy,arrow3copy)),
             frame.animate.restore(),
-            VGroup(changeable_parts[0:3],mat4d.vector_matrices[0:3]).animate.set_opacity(0.5))
+            VGroup(mat4d.parts[0:3],mat4d.vector_matrices[0:3]).animate.set_opacity(0.5))
         
         # go to 4d 
         self.play(FadeIn(sf),tex_3d_number.animate.set_value(4))
@@ -960,9 +1088,14 @@ class video3(InteractiveScene):
         self.play(added_arrow_copy.animate.shift(arrow4.get_vector()))
         self.play(GrowArrow(final_added_arrow))
         self.play(FadeOut(added_arrow_copy),FadeOut(added_arrow),
-            changeable_parts[-1].animate.set_opacity(0.5),
+            mat4d.parts[-1].animate.set_opacity(0.5),
             mat4d.vector_matrices[-1].animate.set_opacity(0.5))
+        self.play(Flash(final_added_arrow.get_end()),Indicate(final_added_arrow),run_time=2)
         self.play(frame.animate.restore(),run_time=1.5)
+
+        # flash around
+        self.play(LaggedStartMap(FlashAround,VGroup(*mat4d.parts)))
+        self.play(ReplacementTransform(mat4d.parts,changeable_parts))
 
         # 4d updater
         vt1=ValueTracker(1)

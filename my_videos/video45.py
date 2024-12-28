@@ -6,7 +6,7 @@ class video4(InteractiveScene):
         frame=self.frame
 
         # write title
-        title0=TextCustom(en='Linear Transformation Magician',ch='线性变换魔术师')
+        title0=TextCustom(en='Linear Transformation Wizard',ch='线性变换魔法师')
         title0.en["Linear Transformation"].set_color(RED_A)
         title0.ch["线性变换"].set_color(RED_A)
         title0.scale(1.3)
@@ -33,7 +33,7 @@ class video4(InteractiveScene):
             LaggedStartMap(FadeOut,VGroup(title.en["Transformation"],title.ch["变换"]),shift=DOWN*2),
             LaggedStartMap(FadeIn,VGroup(title2.en["Marix"],title2.ch["矩阵"]),shift=DOWN*2))
         self.play(title2.animate.arrange(DOWN,aligned_edge=LEFT).scale(0.7).to_edge(LEFT,buff=1))
-
+        
         # arrange down
         text_orthogonal=TextCustom(en='Orthogonal Matrix',ch='正交矩阵',aligned_edge=LEFT)
         text_det=TextCustom(en='Determinant is 1',ch='行列式为1',aligned_edge=LEFT)
@@ -232,7 +232,8 @@ class video4(InteractiveScene):
         coefficient1=Tex('0')
         det1=MatrixDet([[Tex(R"-\sin\theta"),Tex(R'0')],
                         [Tex(R'\cos\theta'),Tex(R'0')]],v_buff=0.25,h_buff=0,bracket_v_buff=0.1)
-        sign1=Tex('+')
+        sign1=Tex('-')
+        sign1.set_color(RED)
         coefficient2=Tex('0')
         det2=MatrixDet([[Tex(R'\cos\theta'),Tex(R"0")],
                         [Tex(R'\sin\theta'),Tex(R'0')]],v_buff=0.25,h_buff=0,bracket_v_buff=0.1)
@@ -1038,7 +1039,68 @@ class video5(InteractiveScene):
         self.play(LaggedStartMap(FadeOut,Group(ax,nbp,t_earth,t_universe,t_sun)),
             LaggedStartMap(FadeOut,Group(sf1,mat1,text_earth),shift=LEFT))
         self.wait()
+class end(InteractiveScene):
+    def construct(self):
+        # init
+        frame=self.frame
 
+        # start
+        thanks_title_en=Text("Credits:")
+        thanks_title_ch=Text("致谢:",font='WenCang')
+        thanks_en=Text("""
+         This animation was created using Manim,
+         a mathematical animation software 
+         originally developed by Grant Sanderson,
+         also known as 3Blue1Brown.
+            """,t2c={'3Blue':BLUE,'1Brown':LIGHT_BROWN,'Grant Sanderson':TEAL_A})
+        thanks_ch=Text("""
+          本动画使用 Manim 制作
+          这是一个由 Grant Sanderson\n（即 3Blue1Brown)
+          最初开发的数学动画软件""",font='WenCang',t2c={'3Blue':BLUE,'1Brown':LIGHT_BROWN,'Grant Sanderson':TEAL_A})
+        thanks_en.next_to(thanks_title_en,DOWN,aligned_edge=LEFT)
+        thanks_ch.next_to(thanks_title_ch,DOWN,aligned_edge=LEFT)
+        grp_en=VGroup(thanks_title_en,thanks_en)
+        grp_ch=VGroup(thanks_title_ch,thanks_ch)
+        grp_thanks=VGroup(grp_en,grp_ch).arrange(LEFT,buff=1,aligned_edge=UP)
+        grp_thanks.set_width(FRAME_WIDTH-1)
+        grp_thanks.to_edge(UP,buff=0.5)
+        thanks_title_battery=Text(R"感谢充电：",font='WenCang')
+        name3=Text(R"哈嘿哟哟",font='WenCang').set_color(BLUE_A)
+        name2=Text(R"xiankoe").set_color(TEAL_A)
+        name1=Text(R"_blue_dolphin").set_color(YELLOW_A)
+        names=VGroup(name1,name2,name3).arrange(RIGHT,buff=1.5)
+        grp_battery=VGroup(thanks_title_battery,names).arrange(DOWN,aligned_edge=LEFT)
+        grp_battery.scale(0.6)
+        grp_battery.next_to(grp_ch,DOWN,aligned_edge=LEFT,buff=1)
+        self.play(LaggedStartMap(Write,grp_ch),LaggedStartMap(Write,grp_en),
+            LaggedStartMap(Write,grp_battery),run_time=5)
+        self.play(LaggedStartMap(Flash,VGroup(thanks_en['Grant Sanderson'],
+            thanks_ch['Grant Sanderson'],name1,name2,name3)))
+        
+        # svgs
+        svg1=SVGMobject('subscribe.svg')
+        svg2=SVGMobject('thumbs.svg')
+        svg3=SVGMobject('coin.svg')
+        svg4=SVGMobject('star.svg')
+        text_subscribe=Text('关注',font='WenCang')
+        svg1.add(text_subscribe)
+        text_subscribe.shift(RIGHT*0.5)
+        grp_svg=VGroup(svg1,svg2,svg3,svg4)
+        grp_svg.arrange(RIGHT,buff=1)
+        grp_svg.set_style(stroke_width=3,stroke_color=YELLOW,
+            stroke_opacity=1,fill_opacity=0.8,fill_color=BLUE)
+        svg2.set_stroke(width=0)
+        svg4.set_stroke(width=0)
+        svg1.set_stroke(width=3)
+        svg3.set_stroke(width=3)
+        grp_svg.scale(0.5)
+        grp_svg.next_to(grp_battery,DOWN,buff=1,aligned_edge=LEFT)
+        grp_svg.save_state()
+        self.play(LaggedStartMap(DrawBorderThenFill,grp_svg))
+        self.wait()
+        self.play(LaggedStartMap(FadeOut,self.mobjects))
+
+        pass
 class MatrixDet(Matrix):
     def create_brackets(self, rows, v_buff: float, h_buff: float) -> VGroup:
         brackets = Tex("".join((

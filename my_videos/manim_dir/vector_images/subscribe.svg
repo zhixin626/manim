@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_图层_5" data-name="图层 5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 556 243.15">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+        stroke: #000;
+        stroke-miterlimit: 10;
+      }
+
+      .cls-2 {
+        font-family: MaoKenWangXingYuan-Regular, MaoKenWangXingYuan;
+        font-size: 38.01px;
+      }
+    </style>
+  </defs>
+  <rect class="cls-1" x="136.5" y="64.5" width="149" height="79" rx="24" ry="24"/>
+  <text class="cls-2" transform="translate(199.31 116.21)"><tspan x="0" y="0">关注</tspan></text>
+  <rect x="152" y="100" width="37" height="3"/>
+  <rect x="152" y="100" width="37" height="3" transform="translate(272 -69) rotate(90)"/>
+</svg>
