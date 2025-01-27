@@ -50,6 +50,7 @@ class SingleStringTex(SVGMobject):
         self.additional_preamble = additional_preamble
 
         super().__init__(
+            svg_string=self.get_svg_string_by_content(self.tex_string),
             height=height,
             fill_color=fill_color,
             fill_opacity=fill_opacity,

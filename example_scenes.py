@@ -11,12 +11,14 @@ import numpy as np
 
 class OpeningManimExample(Scene):
     def construct(self):
+        # start
         intro_words = Text("""
             The original motivation for manim was to
             better illustrate mathematical functions
             as transformations.
         """)
         intro_words.to_edge(UP)
+        rec=Rectangle()
 
         self.play(Write(intro_words))
         self.wait(2)
@@ -71,6 +73,7 @@ class OpeningManimExample(Scene):
 
 class AnimatingMethods(Scene):
     def construct(self):
+        # start
         grid = Tex(R"\pi").get_grid(10, 10, height=4)
         self.add(grid)
 
