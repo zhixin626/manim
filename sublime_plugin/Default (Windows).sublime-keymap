@@ -1,0 +1,64 @@
+[
+	  { "keys": ["shift+ctrl+r"], "command": "manim_run_scene" },
+    { "keys": ["ctrl+r"], "command": "manim_checkpoint_paste" },
+    { "keys": ["ctrl+t"], "command": "manim_skipped_checkpoint_paste" },
+    { "keys": ["ctrl+y"], "command": "manim_recorded_checkpoint_paste" },
+    { "keys": ["shift+ctrl+e"], "command": "manim_exit" },
+    { "keys": ["ctrl+alt+/"], "command": "comment_fold"},
+    { "keys": ["alt+c"],"command":"manim_clear"},
+    
+   // { "keys": ["ctrl+k", "ctrl+p"], "command": "fold_by_level", "args": {"level": 1} },
+    
+   
+//Fold all code blocks
+  // { "keys": ["alt+0", "alt+0"],
+  //   "command": "fold_all" },
+
+// Unfold all code blocks
+  // { "keys": ["ctrl+k","ctrl+0"],
+  //   "command": "unfold_all"},
+
+// toggle fold current code block
+  // { "keys": ["alt+1", "alt+1"],
+  //   "command": "toggle_fold_current"},
+    
+  //   { "keys": ["ctrl+shift+a"],
+  //   "command": "select_between_cursors"},
+  // open terminus
+  //   { "keys": ["ctrl+t"],
+  //   "command": "terminus_open",
+  //   "args": {
+  //           "title":"ipython"
+  //       }
+
+  // },
+  // change cursor position
+    // { "keys": ["alt+down"], "command": "plus_line", "args": {"lines": 10}},
+    // { "keys": ["alt+up"], "command": "minus_line", "args": {"lines": 10}},
+    { "keys": ["alt+left"], "command": "go_to_begin"},
+    { "keys": ["alt+right"], "command": "go_to_end"},
+
+    { "keys": ["shift+up"], "command": "move", "args": {"by": "wholelines", "forward": false, "extend": true} },
+    { "keys": ["shift+down"], "command": "move", "args": {"by": "wholelines", "forward": true, "extend": true} },
+    //     {
+    //     "keys": ["alt+shift+down"],
+    //     "command": "expand_selection",
+    //     "args": {"forward": true}  // 向下扩展
+    // },
+    // {
+    //     "keys": ["alt+shift+up"],
+    //     "command": "expand_selection",
+    //     "args": {"forward": false}  // 向上扩展
+    // },
+    {"keys":["ctrl+="],"command":"activate_myvideo_venv"},
+    {"keys":["ctrl+-"],"command":"activate_video_venv"},
+    {"keys":["ctrl+0"],"command":"activate_opengl_venv"},
+    // { "keys": ["up"], "command": "move", "args": {"by": "lines", "forward": false} },
+
+   // change focus view
+   // {"keys":["shift+alt+o"],"command":"goto_window"},
+    {"keys":["alt+/"],"command":"chang_focus_window"},
+    { "keys": ["alt+-"], "command": "jump_back" },
+
+]
+
