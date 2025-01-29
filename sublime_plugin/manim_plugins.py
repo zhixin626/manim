@@ -66,7 +66,7 @@ def send_terminus_command(
     # Ammend command with various keyboard shortcuts
     full_command = "".join([
         "\x7F" * col if clear else "",  # Bad hack
-        "\x0C" if center else "",  # Command + l
+        "\x0C" if center else "",  # CTRL + L
         command,
         # "\n" if enter else ""
     ])
@@ -245,17 +245,13 @@ class CommentFold(sublime_plugin.TextCommand):
                     last_comment_line_end, region.end(),
                 ))
         self.view.fold(regions_to_fold)
-class ManimClearCommand(sublime_plugin.WindowCommand):
-    def run(self):
-        command=r"self.clear()"
-        send_terminus_command(command)
 
 class ActivateMyvideoVenvCommand(sublime_plugin.WindowCommand):
     def run(self):
         # activate virtual environment and go to the my_video working folder
-        command1=r"cd D:\a_ManimGL1.7.0"
+        command1=r"cd D:\manim"
         command2=r"venv\scripts\activate"
-        command3=r"cd .\zhixin_videos"
+        command3=r"cd D:\zhixin_videos" # for manim custom_config file works
         name = self.window.active_sheet().view().name()
         if "Shell" not in name:
             sublime.run_command('new_window')
@@ -270,19 +266,15 @@ class ActivateMyvideoVenvCommand(sublime_plugin.WindowCommand):
             1500
             )
         sublime.set_timeout(
-            lambda: send_terminus_command(command3),
-            2500
-            )
-        sublime.set_timeout(
             lambda: send_terminus_command('\x0C',enter=False),
-            3000
+            2000
             )
 class ActivateVideoVenvCommand(sublime_plugin.WindowCommand):
     def run(self):
         # activate virtual environment and go to the video working folder
-        command1=r"cd D:\a_ManimGL1.7.0"
+        command1=r"cd D:\manim"
         command2=r"venv\scripts\activate"
-        command3=r"cd .\3b1b_videos"
+        command3=r"cd D:\3b1b_videos" # for manim custom_config file works
         name = self.window.active_sheet().view().name()
         if "Shell" not in name:
             sublime.run_command('new_window')
