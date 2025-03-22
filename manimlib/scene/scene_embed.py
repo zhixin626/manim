@@ -163,7 +163,17 @@ class InteractiveSceneEmbed:
 class CheckpointManager:
     def __init__(self):
         self.checkpoint_states: dict[str, list[tuple[Mobject, Mobject]]] = dict()
-
+    def get_indent(self,line):
+        return line[:len(line) - len(line.lstrip())]
+    def insert_place_window_ontop(self,code_string):
+        lines = code_string.split("\r\n")
+        indent = self.get_indent(lines[0])
+        if lines[0].lstrip().startswith("#"):
+            lines.insert(1,indent+ "self.place_window_ontop()")
+        else:
+            lines.insert(0, indent+"self.place_window_ontop()")
+        modified_code = "\r\n".join(lines)
+        return modified_code
     def checkpoint_paste(self, shell, scene):
         """
         Used during interactive development to run (or re-run)
@@ -174,6 +184,9 @@ class CheckpointManager:
         was called on a block of code starting with that comment.
         """
         code_string = pyperclip.paste()
+        # custom modify:---------------------------
+        code_string=self.insert_place_window_ontop(code_string)
+        # -----------------------------------------
         checkpoint_key = self.get_leading_comment(code_string)
         self.handle_checkpoint_key(scene, checkpoint_key)
         shell.run_cell(code_string)
