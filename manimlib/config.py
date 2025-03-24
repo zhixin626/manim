@@ -36,6 +36,10 @@ def initialize_manim_config() -> Dict:
         load_yaml(global_defaults_file),
         load_yaml("custom_config.yml"),  # From current working directory
         load_yaml(args.config_file) if args.config_file else dict(),
+        # --------------------- custom base override ---------------------
+        {"directories": {"base": str(Path(args.file).absolute().parent)}}
+        if args.base and args.file else dict(),
+        # ---------------------------------------------------------------
     ))
 
     log.setLevel(args.log_level or config["log_level"])
@@ -60,6 +64,13 @@ def parse_cli():
             nargs="?",
             help="Path to file holding the python code for the scene",
         )
+        # ----------------------------custom----------------------------
+        parser.add_argument(
+            "--base",
+            action="store_true",
+            help="Use the directory of the input file as the base path"
+        )
+        # ----------------------------custom----------------------------
         parser.add_argument(
             "scene_names",
             nargs="*",
@@ -388,6 +399,11 @@ def get_output_directory(args: Namespace, config: Dict) -> str:
         rel_path = file_path.relative_to(dir_config.removed_mirror_prefix)
         rel_path = Path(str(rel_path).lstrip("_"))
         out_dir = Path(out_dir, rel_path).with_suffix("")
+    # ----------------------------custom----------------------------
+    elif dir_config.just_mirror_pythonfiles and args.file:
+        file_name=Path(args.file).stem
+        out_dir = Path(out_dir, file_name).with_suffix("")
+    # ----------------------------custom----------------------------
     return out_dir
 
 
