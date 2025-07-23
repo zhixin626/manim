@@ -38,7 +38,7 @@ def initialize_manim_config() -> Dict:
         load_yaml(args.config_file) if args.config_file else dict(),
         # --------------------- custom base override ---------------------
         {"directories": {"base": str(Path(args.file).absolute().parent)}}
-        if args.base and args.file else dict(),
+        if args.basefromfile and args.file else dict(),
         # ---------------------------------------------------------------
     ))
 
@@ -66,7 +66,7 @@ def parse_cli():
         )
         # ----------------------------custom----------------------------
         parser.add_argument(
-            "--base",
+            "--basefromfile",
             action="store_true",
             help="Use the directory of the input file as the base path"
         )

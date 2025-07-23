@@ -49,6 +49,7 @@ ctex:
     \usepackage{xeCJK}
     \setmainfont{Microsoft YaHei}
     \linespread{1}
+    \usepackage{pifont}
 
 # Simplified TeX templates
 

@@ -36,7 +36,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from manimlib.typing import Vect3
 
-
 SELECT_KEY = manim_config.key_bindings.select
 UNSELECT_KEY = manim_config.key_bindings.unselect
 GRAB_KEY = manim_config.key_bindings.grab

@@ -282,8 +282,9 @@ class TexIndexing(Scene):
         self.play(FadeOut(equation))
 
 
-class UpdatersExample(Scene):
+class UpdatersExample(InteractiveScene):
     def construct(self):
+        # start
         square = Square()
         square.set_fill(BLUE_E, 1)
 

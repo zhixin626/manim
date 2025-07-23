@@ -147,6 +147,17 @@ class ShaderWrapper(object):
     def set_ctx_clip_plane(self, enable: bool = True) -> None:
         if enable:
             gl.glEnable(gl.GL_CLIP_DISTANCE0)
+    # ---------------------------------------------------------------
+    # 启用 GL_CLIP_DISTANCE0 可能导致 fill (Tex/Surface) 渲染错误，
+    # 原因是 gl_ClipDistance[0] 在理论为0时因浮点误差小于0，
+    # 导致 OpenGL discard 三角形，出现局部镂空或闪烁。
+    #
+    # Enabling GL_CLIP_DISTANCE0 may cause rendering artifacts (e.g. gaps or flickering)
+    # in filled objects like Tex or Surface. Although gl_ClipDistance[0] is expected to be 0,
+    # floating-point precision errors can make it slightly negative, triggering OpenGL discard.
+        else:
+            gl.glDisable(gl.GL_CLIP_DISTANCE0)
+    # --------------------------------------------------------------
 
     # Adding data
 
