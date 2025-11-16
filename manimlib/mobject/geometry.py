@@ -1063,7 +1063,7 @@ class Arrow(Line):
     def __init__(
         self,
         start: Vect3 | Mobject = LEFT,
-        end: Vect3 | Mobject = LEFT,
+        end: Vect3 | Mobject = RIGHT,
         buff: float = MED_SMALL_BUFF,
         path_arc: float = 0,
         fill_color: ManimColor = DEFAULT_LIGHT_COLOR,

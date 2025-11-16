@@ -7,7 +7,6 @@ from moderngl_window.context.pyglet.window import Window as PygletWindow
 from moderngl_window.timers.clock import Timer
 from functools import wraps
 import screeninfo
-
 from manimlib.constants import ASPECT_RATIO
 from manimlib.constants import FRAME_SHAPE
 
@@ -60,7 +59,8 @@ class Window(PygletWindow):
         self._has_undrawn_event = True
 
         self.scene = scene
-        self.title = str(scene)
+        # self.title = str(scene)
+        self.title = 'PygletWindow'  # 方便识别
 
         self.init_mgl_context()
 

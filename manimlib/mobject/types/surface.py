@@ -243,6 +243,11 @@ class Surface(Mobject):
     def get_shader_vert_indices(self) -> np.ndarray:
         return self.get_triangle_indices()
 
+    @Mobject.affects_data
+    def invert_normals(self):
+        self.data["d_normal_point"] = 2*self.data["point"] - self.data["d_normal_point"]
+        return self
+
 
 class ParametricSurface(Surface):
     def __init__(

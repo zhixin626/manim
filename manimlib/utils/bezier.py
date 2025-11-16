@@ -110,6 +110,7 @@ def outer_interpolate(
     end: Scalable,
     alpha: Scalable,
 ) -> np.ndarray:
+    # 向量的线性插值result=start+alpha*(end-start)
     result = np.outer(1 - alpha, start) + np.outer(alpha, end)
     return result.reshape((*np.shape(alpha), *np.shape(start)))
 

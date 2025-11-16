@@ -9,6 +9,7 @@ import sys
 import numpy as np
 from pydub import AudioSegment
 from tqdm.auto import tqdm as ProgressDisplay
+from tqdm import tqdm
 from pathlib import Path
 
 from manimlib.logger import log
@@ -17,7 +18,7 @@ from manimlib.utils.file_ops import guarantee_existence
 from manimlib.utils.sounds import get_full_sound_file_path
 
 from typing import TYPE_CHECKING
-
+import pyperclip
 if TYPE_CHECKING:
     from PIL.Image import Image
 
@@ -41,7 +42,7 @@ class SceneFileWriter(object):
         show_file_location_upon_completion: bool = False,
         quiet: bool = False,
         total_frames: int = 0,
-        progress_description_len: int = 40,
+        progress_description_len: int = 30,
         # Name of the binary used for ffmpeg
         ffmpeg_bin: str = "ffmpeg",
         video_codec: str = "libx264",
@@ -233,7 +234,7 @@ class SceneFileWriter(object):
             self.progress_display = ProgressDisplay(
                 range(self.total_frames),
                 leave=False,
-                ascii=True if platform.system() == 'Windows' else None,
+                # ascii=True if platform.system() == 'Windows' else None,
                 dynamic_ncols=True,
             )
             self.set_progress_display_description()
@@ -338,7 +339,13 @@ class SceneFileWriter(object):
 
     def print_file_ready_message(self, file_path: str) -> None:
         if not self.quiet:
-            log.info(f"File ready at {file_path}")
+            tqdm.write(f"File ready at: {file_path}")
+            # 获取目录路径
+            folder = os.path.dirname(file_path)
+            # 复制到剪贴板
+            pyperclip.copy(folder)
+            tqdm.write(f"Copied to clipboard: {folder}")
+            # log.info(f"File ready at {file_path}")
 
     def should_open_file(self) -> bool:
         return any([
