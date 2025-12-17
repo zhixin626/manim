@@ -303,7 +303,7 @@ class VShaderWrapper(ShaderWrapper):
         # fill_rgba 4
         # base_normal 3
         # fill_border_width 1
-        self.stroke_vert_format = '3f 4f 1f 1f 16x 3f 4x'
+        self.stroke_vert_format = '3f 4f 1f 1f 16x 3f 4x' # 16x表示跳过16字节bytes（ 1f  → 4 bytes）
         self.stroke_vert_attributes = ['point', 'stroke_rgba', 'stroke_width', 'joint_angle', 'unit_normal']
 
         self.fill_vert_format = '3f 24x 4f 3f 4x'

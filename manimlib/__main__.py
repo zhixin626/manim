@@ -50,7 +50,7 @@ def main():
     """
     Main entry point for ManimGL.
     """
-    print(f"ManimGL \033[32mv{__version__}\033[0m")
+    # print(f"ManimGL \033[32mv{__version__}\033[0m")
 
     args = parse_cli()
     if args.version and args.file is None:

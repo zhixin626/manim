@@ -346,7 +346,7 @@ def update_embed_config(config: Dict, args: Namespace):
 
 def load_yaml(file_path: str):
     try:
-        with open(file_path, "r") as file:
+        with open(file_path, "r",encoding='utf-8') as file:
             return yaml.safe_load(file) or {}
     except FileNotFoundError:
         return {}

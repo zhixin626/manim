@@ -11,6 +11,8 @@ from manimlib.mobject.types.vectorized_mobject import VMobject
 
 from typing import TYPE_CHECKING
 
+from manimlib.scene.scene import Mobject
+
 if TYPE_CHECKING:
     from typing import Sequence, Union, Optional
     from manimlib.typing import ManimColor, Vect3, VectNArray, Self
@@ -210,6 +212,31 @@ class Matrix(VMobject):
 
     def get_ellipses(self) -> VGroup:
         return VGroup(*self.ellipses)
+
+    def get_entry(self,row,col) -> Mobject:
+        return self.mob_matrix[row][col]
+
+    def get_minor(self, row, col) -> VGroup:
+        # 返回余子式
+        rows = len(self.mob_matrix)
+        cols = len(self.mob_matrix[0])
+
+        # 错误判断：row col 不能越界
+        if row < 0 or row >= rows:
+            raise ValueError("row index out of range")
+        if col < 0 or col >= cols:
+            raise ValueError("col index out of range")
+
+        vg = VGroup()
+        for i, row_list in enumerate(self.mob_matrix):
+            if i == row:
+                continue
+            for j, mob in enumerate(row_list):
+                if j == col:
+                    continue
+                vg.add(mob)
+        return vg
+
 
 
 class DecimalMatrix(Matrix):

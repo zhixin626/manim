@@ -19,6 +19,7 @@ from manimlib.utils.sounds import get_full_sound_file_path
 
 from typing import TYPE_CHECKING
 import pyperclip
+import time
 if TYPE_CHECKING:
     from PIL.Image import Image
 
@@ -368,7 +369,21 @@ class SceneFileWriter(object):
 
         for file_path in file_paths:
             if current_os == "Windows":
-                os.startfile(file_path)
+                if self.show_file_location_upon_completion:
+                    # folder = Path(file_path)
+                    # cmd = ["explorer", "/select,", folder]
+                    # sp.run(cmd, stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+                    ahk_script = r"C:\Users\zhixin\Documents\AutoHotkey\filexplorer.ahk"
+                    ahk_exe    = r"C:\Program Files\AutoHotkey\v2\AutoHotkey.exe"
+                    commands = [ahk_exe, ahk_script, Path(file_path).parent]
+                    sp.Popen(
+                        commands,
+                        stdout=sp.DEVNULL,
+                        stderr=sp.DEVNULL,
+                    )
+                    os.startfile(file_path)
+
+
             else:
                 commands = []
                 if current_os == "Linux":

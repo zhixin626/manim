@@ -69,6 +69,11 @@ class Mobject(object):
     shader_folder: str = ""
     render_primitive: int = moderngl.TRIANGLE_STRIP
     # Must match in attributes of vert shader
+    # structured dtype 是否可以“任意自定义”？ 要符合语法：
+    # np.dtype([
+    # (field_name, dtype, shape),
+    # ...
+    # ])
     data_dtype: np.dtype = np.dtype([
         ('point', np.float32, (3,)),
         ('rgba', np.float32, (4,)),
@@ -313,7 +318,7 @@ class Mobject(object):
 
     # Others related to points
 
-    def get_points(self) -> Vect3Array:
+    def get_points(self) -> Vect3Array: # shape为 (n,3)比如一个空的VMobject就是(0,3)
         return self.data["point"]
 
     def clear_points(self) -> Self:
@@ -1066,6 +1071,45 @@ class Mobject(object):
         point_to_align = self.get_bounding_box_point(direction)
         shift_val = target_point - point_to_align - buff * np.array(direction)
         shift_val = shift_val * abs(np.sign(direction))
+        self.shift(shift_val)
+        return self
+
+    def align_to_point(
+        self,
+        target_point: Vect3,
+        direction: Vect3,
+        buff: float = DEFAULT_MOBJECT_TO_EDGE_BUFF,
+        only_direction_shift=True,
+    ) -> Self:
+        point_to_align = self.get_bounding_box_point(direction)
+        shift_val = target_point - point_to_align - buff * np.array(direction)
+        shift_val = shift_val * abs(np.sign(direction)) if only_direction_shift else shift_val
+        self.shift(shift_val)
+        return self
+
+    def to_mob_corner(
+        self,
+        mob,
+        direction: Vect3,
+        buff: float = DEFAULT_MOBJECT_TO_EDGE_BUFF
+        )-> Self:
+        target_point=mob.get_corner(direction)
+        self.align_to_point(target_point,direction,buff,only_direction_shift=True)
+        return self
+
+    def to_mob_edge(
+        self,
+        mob,
+        direction: Vect3,
+        buff: float = DEFAULT_MOBJECT_TO_EDGE_BUFF
+        )-> Self:
+        target_point=mob.get_edge_center(direction)
+        self.align_to_point(target_point,direction,buff,only_direction_shift=False)
+        return self
+
+    def to_mob_center(self,mob)-> Self:
+        target_point=mob.get_center()
+        shift_val=target_point-self.get_center()
         self.shift(shift_val)
         return self
 

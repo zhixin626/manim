@@ -1201,7 +1201,7 @@ class VMobject(Mobject):
 
     @triggers_refresh
     def set_points(self, points: Vect3Array) -> Self:
-        assert len(points) == 0 or len(points) % 2 == 1
+        assert len(points) == 0 or len(points) % 2 == 1 # 点数要么是 0，要么是奇数
         return super().set_points(points)
 
     @triggers_refresh

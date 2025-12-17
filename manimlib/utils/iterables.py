@@ -94,6 +94,15 @@ def resize_array(nparray: np.ndarray, length: int) -> np.ndarray:
     if len(nparray) == length:
         return nparray
     return np.resize(nparray, (length, *nparray.shape[1:]))
+    # example:
+    # vmob=VMobject()
+    # points = resize_array(vmob.get_points(), 5)
+    # 返回array([[0., 0., 0.],
+    #    [0., 0., 0.],
+    #    [0., 0., 0.],
+    #    [0., 0., 0.],
+    #    [0., 0., 0.]], dtype=float32)
+
 
 
 def resize_preserving_order(nparray: np.ndarray, length: int) -> np.ndarray:
