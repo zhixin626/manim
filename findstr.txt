@@ -1,0 +1,1 @@
+findstr /s /n /i "always_sort_to_camera" *.py

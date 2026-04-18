@@ -707,7 +707,10 @@ class Scene(object):
             self.show_animation_progress = prev_progress
 
     @contextmanager
-    def temp_record(self):
+    def temp_record(self, fps=60): # zhixin
+        prev = self.camera.fps
+        self.camera.fps = fps
+        self.camera_config["fps"] = fps
         self.camera.use_window_fbo(False)
         self.file_writer.begin_insert()
         try:
@@ -715,6 +718,8 @@ class Scene(object):
         finally:
             self.file_writer.end_insert()
             self.camera.use_window_fbo(True)
+            self.camera.fps = prev
+            self.camera_config["fps"] = prev
 
     def temp_config_change(self, skip=False, record=False, progress_bar=False):
         stack = ExitStack()

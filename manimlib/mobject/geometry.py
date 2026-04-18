@@ -1213,6 +1213,7 @@ class Arrow(Line):
         normal = self.get_unit_normal()
         axis = normalize(self.get_vector())
         # Project to be perpendicular to axis
+        # to_cam⋅axis=∣to_cam∣cosθ (to_cam 在 axis 方向上的“投影长度”)
         trg_normal = to_cam - np.dot(to_cam, axis) * axis
         mat = rotation_between_vectors(normal, trg_normal)
         self.apply_matrix(mat, about_point=self.get_start())

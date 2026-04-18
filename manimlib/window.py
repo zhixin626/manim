@@ -80,10 +80,28 @@ class Window(PygletWindow):
             # Default fallback
             return screeninfo.Monitor(width=1920, height=1080)
 
+    # def get_default_size(self, full_screen=False):
+    #     width = self.monitor.width // (1 if full_screen else 2)
+    #     height = int(width // ASPECT_RATIO)
+    #     return (width, height)
+
     def get_default_size(self, full_screen=False):
-        width = self.monitor.width // (1 if full_screen else 2)
-        height = int(width // ASPECT_RATIO)
-        return (width, height)
+        if full_screen:
+            return (self.monitor.width, self.monitor.height)
+
+        monitor_width = self.monitor.width
+        monitor_height = self.monitor.height
+
+        # 逐步尝试 //2, //3, //4...
+        for divisor in range(2, 11):
+            width = monitor_width // divisor
+            height = int(width // ASPECT_RATIO)
+
+            if height <= monitor_height:
+                return (width, height)
+
+        # 兜底方案：用显示器高度反推宽度
+        return (int(monitor_height * ASPECT_RATIO), monitor_height)
 
     def position_from_string(self, position_string):
         # Alternatively, it might be specified with a string like

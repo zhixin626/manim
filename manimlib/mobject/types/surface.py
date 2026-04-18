@@ -37,11 +37,11 @@ class Surface(Mobject):
 
     def __init__(
         self,
+        u_range: Tuple[float, float] = (0.0, 1.0),
+        v_range: Tuple[float, float] = (0.0, 1.0),
         color: ManimColor = GREY,
         shading: Tuple[float, float, float] = (0.3, 0.2, 0.4),
         depth_test: bool = True,
-        u_range: Tuple[float, float] = (0.0, 1.0),
-        v_range: Tuple[float, float] = (0.0, 1.0),
         # Resolution counts number of points sampled, which for
         # each coordinate is one more than the the number of
         # rows/columns of approximating squares

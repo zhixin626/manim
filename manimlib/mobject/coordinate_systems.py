@@ -542,6 +542,7 @@ class ThreeDAxes(Axes):
         z_axis_config: dict = dict(),
         z_normal: Vect3 = DOWN,
         depth: float | None = None,
+        remove_origin_ticks: bool = True,   # <- 新增：是否去掉原点 tick
         **kwargs
     ):
         Axes.__init__(self, x_range, y_range, **kwargs)
@@ -566,16 +567,77 @@ class ThreeDAxes(Axes):
         self.axes.add(self.z_axis)
         self.add(self.z_axis)
 
+        if remove_origin_ticks:
+            self.remove_origin_ticks()
+    def get_x_unit_size(self) -> float:
+        return self.get_x_axis().get_unit_size()
+    def remove_origin_ticks(self) -> None:
+        """移除 x/y/z 三条轴在原点处的 tick（若存在）。"""
+        for axis in [self.x_axis, self.y_axis, self.z_axis]:
+            self._remove_origin_tick_from_axis(axis)
+    def _remove_origin_tick_from_axis(self, axis: NumberLine, eps: float = 1e-6) -> None:
+        if not hasattr(axis, "ticks"):
+            return
+        ticks = axis.ticks
+        if len(ticks) == 0:
+            return
+        origin = axis.n2p(0)
+        # 找到离 origin 最近的 tick
+        dists = [np.linalg.norm(t.get_center() - origin) for t in ticks]
+        i = int(np.argmin(dists))
+        if dists[i] < eps:
+            # 既从轴上移除，也从 ThreeDAxes 这个容器里移除（稳妥）
+            axis.remove(ticks[i])
+            self.remove(ticks[i])
+
+    def add_coordinate_labels(
+        self,
+        x_values=None,
+        y_values=None,
+        z_values=None,
+        excluding=[0],
+        font_size=20,
+        z_direction=LEFT,
+        **kwargs
+    ):
+        # 先用 Axes 的逻辑给 x/y 加 numbers（会创建 self.coordinate_labels）
+        super().add_coordinate_labels(
+            x_values=x_values,
+            y_values=y_values,
+            excluding=excluding,
+            font_size=font_size,
+            **kwargs
+        )
+
+        # 再给 z 轴加 numbers，并旋转到你想要的朝向
+        z_labels = self.z_axis.add_numbers(
+            z_values,
+            excluding=excluding,
+            direction=z_direction,
+            font_size=font_size,
+            **kwargs
+        )
+        for label in z_labels:
+            label.rotate(PI / 2, RIGHT)
+
+        self.coordinate_labels.add(z_labels)
+        return self.coordinate_labels
+
     def get_all_ranges(self) -> list[Sequence[float]]:
         return [self.x_range, self.y_range, self.z_range]
 
-    def add_axis_labels(self, x_tex="x", y_tex="y", z_tex="z", font_size=24, buff=0.2):
+    def add_axis_labels(self,
+        x_tex="x",
+        y_tex="y",
+        z_tex="z",
+        font_size=60,
+        buff=MED_SMALL_BUFF):
         x_label, y_label, z_label = labels = VGroup(*(
             Tex(tex, font_size=font_size)
             for tex in [x_tex, y_tex, z_tex]
         ))
         z_label.rotate(PI / 2, RIGHT)
-        for label, axis in zip(labels, self):
+        for label, axis in zip(labels, self.axes):
             label.next_to(axis, normalize(np.round(axis.get_vector()), 2), buff=buff)
             axis.add(label)
         self.axis_labels = labels

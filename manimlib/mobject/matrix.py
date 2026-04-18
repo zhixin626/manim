@@ -42,6 +42,7 @@ class Matrix(VMobject):
         or mobjects
         """
         super().__init__()
+        self.raw_matrix = matrix
 
         self.mob_matrix = self.create_mobject_matrix(
             matrix, v_buff, h_buff, element_alignment_corner,
@@ -71,6 +72,15 @@ class Matrix(VMobject):
             ellipses_row,
             ellipses_col,
         )
+
+    @property
+    def shape(self) -> tuple[int, int]:
+        """
+        (n_rows, n_cols)
+        """
+        rows = len(self.mob_matrix)
+        cols = len(self.mob_matrix[0]) if rows > 0 else 0
+        return rows, cols
 
     def copy(self, deep: bool = False):
         result = super().copy(deep)
